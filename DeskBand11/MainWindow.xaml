@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<winuiex:WindowEx
+    x:Class="DeskBand11.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:DeskBand11"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:winuiex="using:WinUIEx"
+    Title="DeskBand11"
+    Width="800"
+    Height="480"
+    MinWidth="320"
+    MinHeight="240"
+    mc:Ignorable="d">
+
+
+    <Grid>
+        <TextBlock>Yo whats up</TextBlock>
+    </Grid>
+</winuiex:WindowEx>
