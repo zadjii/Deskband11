@@ -12,10 +12,25 @@
     Height="480"
     MinWidth="320"
     MinHeight="240"
+    IsAlwaysOnTop="True"
     mc:Ignorable="d">
 
+    <Window.SystemBackdrop>
+        <winuiex:TransparentTintBackdrop />
+    </Window.SystemBackdrop>
 
-    <Grid>
+    <Grid
+        Height="48"
+        MaxHeight="48"
+        Margin="0,0,400,0"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Top"
+        Background="Red"
+        BorderThickness="0"
+        CornerRadius="4">
         <TextBlock>Yo whats up</TextBlock>
+        <StackPanel Orientation="Vertical">
+            <Button>Click me</Button>
+        </StackPanel>
     </Grid>
 </winuiex:WindowEx>
