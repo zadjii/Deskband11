@@ -62,3 +62,5 @@ GetWindowLong
 SetWindowLong
 SetWindowPos
 WINDOW_STYLE
+SetWindowRgn
+CreateRectRgn

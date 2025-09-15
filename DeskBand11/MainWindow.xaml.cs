@@ -1,5 +1,6 @@
 using JPSoftworks.MediaControlsExtension.Model;
 using JPSoftworks.MediaControlsExtension.Services;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -34,6 +35,12 @@ namespace DeskBand11
             _hwnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(this).ToInt32());
 
             this.VisibilityChanged += MainWindow_VisibilityChanged;
+            this.ItemsBar.SizeChanged += ItemsBar_SizeChanged;
+        }
+
+        private void ItemsBar_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
+        {
+            ClipWindow();
         }
 
         private void MainWindow_VisibilityChanged(object sender, Microsoft.UI.Xaml.WindowVisibilityChangedEventArgs args)
@@ -74,6 +81,35 @@ namespace DeskBand11
 
             //HostControl.Width = Height;
             //this.Height = reBarRect.bottom - reBarRect.top;
+            ClipWindow();
+        }
+
+        private void ClipWindow()
+        {
+            // get the size of the ItemsBar
+            // Set the clip region of this window to that size
+            Microsoft.UI.Xaml.Controls.ItemsControl clipToElement = ItemsBar;
+            System.Numerics.Vector2 clipToSize = clipToElement.ActualSize;
+            Windows.Foundation.Point position = clipToElement.TransformToVisual(this.Content).TransformPoint(new());
+            float scaleFactor = (float)this.GetDpiForWindow() / 96.0f;
+            RECT scaledBounds = new()
+            {
+                left = (int)(position.X * scaleFactor),
+                top = (int)(position.Y * scaleFactor),
+                right = (int)((position.X + clipToElement.ActualWidth) * scaleFactor),
+                bottom = (int)((position.Y + clipToElement.ActualHeight) * scaleFactor)
+            };
+            //RECT windowRect = new();
+            //PInvoke.GetWindowRect(_hwnd, out windowRect);
+            //scaledBounds.left += windowRect.left;
+            //scaledBounds.right += windowRect.left;
+            //scaledBounds.top += windowRect.top;
+            //scaledBounds.bottom += windowRect.top;
+
+            PInvoke.SetWindowRgn(_hwnd,
+                PInvoke.CreateRectRgn(scaledBounds.left,
+                    scaledBounds.top, scaledBounds.right, scaledBounds.bottom),
+                    true);
         }
     }
 
@@ -88,6 +124,7 @@ namespace DeskBand11
     public partial class AudioBand : TaskbarItemViewModel
     {
         MediaService _service = new();
+        private DispatcherQueue _queue = DispatcherQueue.GetForCurrentThread();
 
         public AudioBand()
         {
@@ -115,6 +152,10 @@ namespace DeskBand11
         }
 
         private void UpdateTitle()
+        {
+            _queue.TryEnqueue(UpdateTitleOnUiThread);
+        }
+        private void UpdateTitleOnUiThread()
         {
             if (_service.CurrentSource is MediaSource media)
             {
