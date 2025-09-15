@@ -1,4 +1,8 @@
+using JPSoftworks.MediaControlsExtension.Model;
+using JPSoftworks.MediaControlsExtension.Services;
 using Microsoft.UI.Windowing;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -12,21 +16,36 @@ namespace DeskBand11
     /// <summary>
     /// An empty window that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainWindow : WindowEx
+    public sealed partial class MainWindow : WindowEx, INotifyPropertyChanged
     {
         private readonly HWND _hwnd;
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public ObservableCollection<TaskbarItemViewModel> Bands { get; set; }
+
         public MainWindow()
         {
+            Bands = new();
+            Bands.Add(new HelloWorldTaskBand());
+            Bands.Add(new AudioBand());
+
             InitializeComponent();
             _hwnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(this).ToInt32());
-            ExtendsContentIntoTitleBar = true;
-            AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Collapsed;
+
+            this.VisibilityChanged += MainWindow_VisibilityChanged;
+        }
+
+        private void MainWindow_VisibilityChanged(object sender, Microsoft.UI.Xaml.WindowVisibilityChangedEventArgs args)
+        {
             MoveToTaskbar();
         }
 
         private void MoveToTaskbar()
         {
+            ExtendsContentIntoTitleBar = true;
+            AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Collapsed;
+
             HWND thisWindow = _hwnd;
 
             HWND taskbarWindow = PInvoke.FindWindow("Shell_TrayWnd", null);
@@ -54,6 +73,59 @@ namespace DeskBand11
                          0);
 
             //HostControl.Width = Height;
+            //this.Height = reBarRect.bottom - reBarRect.top;
+        }
+    }
+
+    public partial class HelloWorldTaskBand : TaskbarItemViewModel
+    {
+        public HelloWorldTaskBand()
+        {
+            Title = "Hello world";
+        }
+    }
+
+    public partial class AudioBand : TaskbarItemViewModel
+    {
+        MediaService _service = new();
+
+        public AudioBand()
+        {
+            _service.InitializeAsync().ContinueWith(t => { UpdateTitle(); });
+
+
+            _service.MediaSourcesChanged += MediaSourcesChanged;
+            _service.CurrentMediaSourceChanged += CurrentMediaSourceChanged;
+            _service.CurrentMediaPlaybackChanged += CurrentMediaPlaybackChanged;
+        }
+
+        private void CurrentMediaPlaybackChanged(object? sender, EventArgs e)
+        {
+            UpdateTitle();
+        }
+
+        private void CurrentMediaSourceChanged(object? sender, MediaSource? e)
+        {
+            UpdateTitle();
+        }
+
+        private void MediaSourcesChanged(object? sender, EventArgs e)
+        {
+            UpdateTitle();
+        }
+
+        private void UpdateTitle()
+        {
+            if (_service.CurrentSource is MediaSource media)
+            {
+                Title = media.Name;
+                Subtitle = media.Artist;
+            }
+            else
+            {
+                Title = "No media playing";
+                Subtitle = string.Empty;
+            }
         }
     }
 }
