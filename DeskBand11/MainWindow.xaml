@@ -30,136 +30,6 @@
 
         <Grid.Resources>
             <ResourceDictionary>
-                <DataTemplate x:Key="CommandButtonTemplate" x:DataType="local:CommandViewModel">
-                    <Button MaxHeight="24" Padding="4">
-                        <Grid
-                            AutomationProperties.Name="{x:Bind Name, Mode=OneWay}"
-                            Background="Transparent"
-                            ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel
-                                Grid.Column="0"
-                                VerticalAlignment="Center"
-                                Background="Transparent"
-                                Orientation="Vertical">
-                                <cpcontrols:IconBox
-                                    x:Name="IconBorder"
-                                    Width="16"
-                                    Height="16"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.AccessibilityView="Raw"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    SourceKey="{x:Bind Icon, Mode=OneWay}"
-                                    SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
-                            </StackPanel>
-                            <StackPanel
-                                Grid.Column="1"
-                                VerticalAlignment="Center"
-                                Background="Transparent"
-                                Orientation="Vertical"
-                                Visibility="{x:Bind Name, Mode=OneWay, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
-                                <TextBlock
-                                    x:Name="TitleTextBlock"
-                                    MaxWidth="200"
-                                    MaxHeight="40"
-                                    Margin="0"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    CharacterSpacing="12"
-                                    FontSize="14"
-                                    Foreground="{ThemeResource TextFillColorPrimary}"
-                                    Text="{x:Bind Name, Mode=OneWay}"
-                                    TextAlignment="Left"
-                                    TextTrimming="WordEllipsis"
-                                    TextWrapping="NoWrap" />
-                            </StackPanel>
-
-                        </Grid>
-
-
-                    </Button>
-                </DataTemplate>
-
-                <DataTemplate x:Key="DeskbandTemplate" x:DataType="local:TaskbarItemViewModel">
-                    <Grid
-                        AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
-                        Background="Transparent"
-                        ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            Background="Red"
-                            Orientation="Vertical"
-                            Visibility="{x:Bind HasIcon, Mode=OneWay}">
-                            <cpcontrols:IconBox
-                                x:Name="IconBorder"
-                                Width="32"
-                                Height="32"
-                                VerticalAlignment="Center"
-                                AutomationProperties.AccessibilityView="Raw"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                SourceKey="{x:Bind Icon, Mode=OneWay}"
-                                SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
-                        </StackPanel>
-                        <StackPanel
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Background="Transparent"
-                            Orientation="Vertical">
-                            <TextBlock
-                                x:Name="TitleTextBlock"
-                                MaxWidth="200"
-                                MaxHeight="40"
-                                Margin="0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                CharacterSpacing="12"
-                                FontSize="14"
-                                Foreground="{ThemeResource TextFillColorPrimary}"
-                                Text="{x:Bind Title, Mode=OneWay}"
-                                TextAlignment="Left"
-                                TextTrimming="WordEllipsis"
-                                TextWrapping="NoWrap" />
-                            <TextBlock
-                                x:Name="SubTitleTextBlock"
-                                MaxWidth="152"
-                                MaxHeight="40"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                CharacterSpacing="11"
-                                FontSize="10"
-                                Foreground="{ThemeResource TextFillColorTertiary}"
-                                Text="{x:Bind Subtitle, Mode=OneWay}"
-                                TextAlignment="Center"
-                                TextTrimming="WordEllipsis"
-                                TextWrapping="NoWrap" />
-                        </StackPanel>
-
-                        <ItemsRepeater
-                            Grid.Column="2"
-                            Margin="0,0,8,0"
-                            ItemTemplate="{StaticResource CommandButtonTemplate}"
-                            ItemsSource="{x:Bind Buttons, Mode=OneWay}">
-
-                            <ItemsRepeater.Layout>
-                                <StackLayout
-                                    x:Name="HorizontalStackLayout"
-                                    Orientation="Horizontal"
-                                    Spacing="8" />
-                            </ItemsRepeater.Layout>
-                        </ItemsRepeater>
-                    </Grid>
-                </DataTemplate>
             </ResourceDictionary>
         </Grid.Resources>
 
@@ -168,23 +38,9 @@
             <ColumnDefinition Width="400" />
         </Grid.ColumnDefinitions>
 
-        <ItemsControl
-            x:Name="ItemsBar"
-            Grid.Column="0"
-            MinWidth="200"
-            VerticalAlignment="Top"
-            Background="Blue"
-            BorderBrush="Blue"
-            BorderThickness="1"
-            IsTabStop="False"
-            ItemTemplate="{StaticResource DeskbandTemplate}"
-            ItemsSource="{x:Bind Bands, Mode=OneWay}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="16" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
+        <ContentControl x:Name="MainContent" Grid.Column="0">
+            <local:BandsItemsControl />
+        </ContentControl>
 
     </Grid>
 </winuiex:WindowEx>
