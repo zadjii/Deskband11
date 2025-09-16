@@ -92,17 +92,6 @@ namespace DeskBand11
         private void Model_PropChanged(object sender, IPropChangedEventArgs args)
         {
             _queue.TryEnqueue(DispatcherQueuePriority.Normal, () => { OnPropertyChanged(args.PropertyName); });
-            //var propertyName = args.PropertyName;
-
-            //switch (propertyName)
-            //{
-            //    case (nameof(ICommand.Name)):
-            //        Name = _model.Name;
-            //        break;
-            //    case (nameof(ICommand.Icon)):
-            //        Icon = _model.Icon;
-            //        break;
-            //}
         }
 
         public IIconInfo Icon => _model.Icon;

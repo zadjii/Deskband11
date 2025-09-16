@@ -12,6 +12,7 @@
     xmlns:winuiex="using:WinUIEx"
     Title="DeskBand11"
     IsAlwaysOnTop="True"
+    Closed="MainWindow_Closed"
     mc:Ignorable="d">
 
     <Window.SystemBackdrop>
@@ -26,11 +27,10 @@
         VerticalAlignment="Top"
         Background="Transparent"
         BorderBrush="Red"
-        BorderThickness="1">
+        BorderThickness="0">
 
         <Grid.Resources>
-            <ResourceDictionary>
-            </ResourceDictionary>
+            <ResourceDictionary />
         </Grid.Resources>
 
         <Grid.ColumnDefinitions>

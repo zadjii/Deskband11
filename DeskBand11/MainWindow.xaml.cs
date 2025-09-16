@@ -1,6 +1,7 @@
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.CmdPal.UI.Helpers;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using System.ComponentModel;
 using System.Diagnostics;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -15,11 +16,12 @@ namespace DeskBand11
     /// <summary>
     /// An empty window that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainWindow : WindowEx, INotifyPropertyChanged
+    public sealed partial class MainWindow : WindowEx,
+        IRecipient<OpenSettingsMessage>,
+        IRecipient<QuitMessage>
     {
         private readonly HWND _hwnd;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
+        private readonly TrayIconService _trayIconService = new();
 
         public MainWindow()
         {
@@ -29,6 +31,11 @@ namespace DeskBand11
             this.VisibilityChanged += MainWindow_VisibilityChanged;
             // this.ItemsBar.SizeChanged += ItemsBar_SizeChanged;
             this.Root.SizeChanged += ItemsBar_SizeChanged;
+
+            WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
+            WeakReferenceMessenger.Default.Register<QuitMessage>(this);
+            MoveToTaskbar();
+            _trayIconService.SetupTrayIcon(true);
         }
 
         private void ItemsBar_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
@@ -72,8 +79,6 @@ namespace DeskBand11
                          reBarRect.bottom - reBarRect.top,
                          0);
 
-            //HostControl.Width = Height;
-            //this.Height = reBarRect.bottom - reBarRect.top;
             ClipWindow();
         }
 
@@ -99,5 +104,27 @@ namespace DeskBand11
                     scaledBounds.top, scaledBounds.right, scaledBounds.bottom),
                     true);
         }
+
+        public void Receive(OpenSettingsMessage message)
+        {
+            // do nothing
+        }
+
+        public void Receive(QuitMessage message)
+        {
+            this.VisibilityChanged -= MainWindow_VisibilityChanged;
+            this.Root.SizeChanged -= ItemsBar_SizeChanged;
+
+            DispatcherQueue.TryEnqueue(() => Close());
+        }
+
+        private void MainWindow_Closed(object sender, WindowEventArgs args)
+        {
+            _trayIconService.Destroy();
+            Environment.Exit(0);
+        }
     }
+
+    public record OpenSettingsMessage();
+    public record QuitMessage();
 }

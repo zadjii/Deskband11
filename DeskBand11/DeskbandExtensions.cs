@@ -140,8 +140,10 @@ namespace DeskBand11
     internal partial class TogglePlayback : InvokableCommand
     {
         private readonly MediaService _service;
+        private static readonly IconInfo PlayIcon = new("\uE768");
+        private static readonly IconInfo PauseIcon = new("\uE769");
 
-        public override IconInfo Icon => new("\uE768");
+        // public override IconInfo Icon => PlayIcon;
 
 
         public override ICommandResult Invoke()
@@ -159,6 +161,13 @@ namespace DeskBand11
         internal TogglePlayback(MediaService service)
         {
             _service = service;
+            Icon = PlayIcon;
+            _service.CurrentMediaPlaybackChanged += CurrentMediaPlaybackChanged;
+        }
+
+        private void CurrentMediaPlaybackChanged(object? sender, EventArgs e)
+        {
+            Icon = _service.CurrentSource?.IsPlaying ?? false ? PauseIcon : PlayIcon;
         }
     }
 }
