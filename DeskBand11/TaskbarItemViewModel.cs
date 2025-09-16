@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using Microsoft.UI.Dispatching;
@@ -112,5 +113,17 @@ namespace DeskBand11
 
         // TODO! BODGY: CmdPal does this better, referencing actual theme
         public bool HasIcon => Icon != null && (!string.IsNullOrEmpty(Icon.Dark.Icon) || Icon.Dark.Data != null);
+
+        [RelayCommand]
+        public void Invoke()
+        {
+            _ = Task.Run(() =>
+            {
+                if (_model is IInvokableCommand invokable)
+                {
+                    invokable.Invoke(_model);
+                }
+            });
+        }
     }
 }

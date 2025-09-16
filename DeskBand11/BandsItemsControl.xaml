@@ -14,7 +14,10 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <DataTemplate x:Key="CommandButtonTemplate" x:DataType="local:CommandViewModel">
-                <Button MaxHeight="32" Padding="4">
+                <Button
+                    MaxHeight="32"
+                    Padding="4"
+                    Command="{x:Bind InvokeCommand, Mode=OneWay}">
                     <Grid
                         AutomationProperties.Name="{x:Bind Name, Mode=OneWay}"
                         Background="Transparent"
