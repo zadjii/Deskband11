@@ -20,6 +20,7 @@ namespace DeskBand11
     /// </summary>
     public sealed partial class MainWindow : WindowEx,
         IRecipient<OpenSettingsMessage>,
+        IRecipient<TaskbarRestartMessage>,
         IRecipient<QuitMessage>
     {
         private readonly uint WM_TASKBAR_RESTART;
@@ -30,6 +31,7 @@ namespace DeskBand11
         // Constants for Windows messages related to display changes
         private const int WM_DISPLAYCHANGE = 0x007E;
         private const int WM_SETTINGCHANGE = 0x001A;
+        private const int WM_DESTROY = 0x0002;
 
         // Store the original WndProc
         private WNDPROC? _originalWndProc;
@@ -48,6 +50,7 @@ namespace DeskBand11
             this.Root.SizeChanged += ItemsBar_SizeChanged;
 
             WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
+            WeakReferenceMessenger.Default.Register<TaskbarRestartMessage>(this);
             WeakReferenceMessenger.Default.Register<QuitMessage>(this);
 
             _appWindow = this.AppWindow;
@@ -61,6 +64,8 @@ namespace DeskBand11
             nint hotKeyPrcPointer = Marshal.GetFunctionPointerForDelegate(_hotkeyWndProc);
             _originalWndProc = Marshal.GetDelegateForFunctionPointer<WNDPROC>(PInvoke.SetWindowLongPtr(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, hotKeyPrcPointer));
 
+            ExtendsContentIntoTitleBar = true;
+            _appWindow.TitleBar?.PreferredHeightOption = TitleBarHeightOption.Collapsed;
             MoveToTaskbar();
             _trayIconService.SetupTrayIcon(true);
 
@@ -92,11 +97,20 @@ namespace DeskBand11
                     DispatcherQueue.TryEnqueue(async () => await UpdateLayoutForDPI());
                 }
             }
-            else if (uMsg == WM_TASKBAR_RESTART)
+            else if (uMsg == WM_DESTROY)
             {
-                Debug.WriteLine("WM_TASKBAR_RESTART");
-                DispatcherQueue.TryEnqueue(async () => await UpdateLayoutForDPI());
+                // IF WE GOT THIS, WE SHOULD EAT IT
+                // BUT WE DON'T
+                // Somewhere in the stack, XAML just removes our whole UI tree from the
+                // DesktopWindowXamlSource, and we're in oblivion. 
+                Debug.WriteLine("WM_DESTROY");
+                return (LRESULT)0;
             }
+            //else if (uMsg == WM_TASKBAR_RESTART)
+            //{
+            //    Debug.WriteLine("WM_TASKBAR_RESTART");
+            //    DispatcherQueue.TryEnqueue(async () => await UpdateLayoutForDPI());
+            //}
 
             // Call the original window procedure for all messages
             return PInvoke.CallWindowProc(_originalWndProc, hwnd, uMsg, wParam, lParam);
@@ -119,9 +133,6 @@ namespace DeskBand11
                 Debug.WriteLine("unexpectedly, AppWindow was null");
                 return;
             }
-
-            ExtendsContentIntoTitleBar = true;
-            _appWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Collapsed;
 
             HWND thisWindow = _hwnd;
 
@@ -188,6 +199,37 @@ namespace DeskBand11
         {
             // do nothing
         }
+        public void Receive(TaskbarRestartMessage message)
+        {
+            Debug.WriteLine("WM_TASKBAR_RESTART");
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                // I cannot for the life of me get the window to reparent to the new taskbar window. 
+                // Maybe I'm just always doing this too fast?
+                // I don't know. 
+                // Every time we get this, it seems like the content in the ContentAreaPresenter is already null
+                // and our ActualWidth is now 0, and the DPI is 0, so we get no size
+                // 
+                // This is just not getting fixed during a hackathon
+
+                ////this.Hide();
+                //PInvoke.SetParent(_hwnd, HWND.Null);
+                ////this.Show();
+                //await Task.Delay(3000);
+                //await UpdateLayoutForDPI();
+
+                //this.Closed -= MainWindow_Closed;
+                //_trayIconService.Destroy();
+                //MainWindow newWindow = new();
+                //newWindow.Activate();
+                //WeakReferenceMessenger.Default.UnregisterAll(this); // TODO! not AOT safe
+
+                //this.CoreWindow.Close();
+
+                this.Close();
+            });
+
+        }
 
         public void Receive(QuitMessage message)
         {
@@ -206,4 +248,5 @@ namespace DeskBand11
 
     public record OpenSettingsMessage();
     public record QuitMessage();
+    public record TaskbarRestartMessage();
 }

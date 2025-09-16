@@ -183,6 +183,7 @@ internal sealed partial class TrayIconService
                     // Handle the case where explorer.exe restarts.
                     // Even if we created it before, do it again
                     SetupTrayIcon();
+                    WeakReferenceMessenger.Default.Send<TaskbarRestartMessage>(new());
                 }
                 else if (uMsg == WM_TRAY_ICON)
                 {

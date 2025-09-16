@@ -11,8 +11,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:winuiex="using:WinUIEx"
     Title="DeskBand11"
-    IsAlwaysOnTop="True"
     Closed="MainWindow_Closed"
+    IsAlwaysOnTop="True"
     mc:Ignorable="d">
 
     <Window.SystemBackdrop>
