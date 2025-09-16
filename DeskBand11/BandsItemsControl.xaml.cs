@@ -17,6 +17,7 @@ namespace DeskBand11
         public BandsItemsControl()
         {
             Bands = new ObservableCollection<TaskbarItemViewModel>();
+            Bands.Add(new ButtonsWithLabelsTaskBand());
             Bands.Add(new HelloWorldTaskBand());
             Bands.Add(new AudioBand());
             InitializeComponent();

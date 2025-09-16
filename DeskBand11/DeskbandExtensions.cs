@@ -3,15 +3,7 @@ using JPSoftworks.MediaControlsExtension.Services;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Windowing;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
 using Windows.Storage.Streams;
-using Windows.Win32;
-using Windows.Win32.Foundation;
-using Windows.Win32.UI.WindowsAndMessaging;
-using WinUIEx;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -23,6 +15,16 @@ namespace DeskBand11
         public HelloWorldTaskBand()
         {
             Title = "Hello world";
+        }
+    }
+    public partial class ButtonsWithLabelsTaskBand : TaskbarItemViewModel
+    {
+        public ButtonsWithLabelsTaskBand()
+        {
+            AnonymousCommand foo = new(() => { }) { Name = "Do nothing" };
+            AnonymousCommand bar = new(() => { }) { Name = "Same", Icon = new("\uE98F") };
+            Buttons.Add(new CommandViewModel(foo));
+            Buttons.Add(new CommandViewModel(bar));
         }
     }
 

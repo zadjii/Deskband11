@@ -14,7 +14,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <DataTemplate x:Key="CommandButtonTemplate" x:DataType="local:CommandViewModel">
-                <Button MaxHeight="24" Padding="4">
+                <Button MaxHeight="32" Padding="4">
                     <Grid
                         AutomationProperties.Name="{x:Bind Name, Mode=OneWay}"
                         Background="Transparent"
@@ -28,7 +28,8 @@
                             Grid.Column="0"
                             VerticalAlignment="Center"
                             Background="Transparent"
-                            Orientation="Vertical">
+                            Orientation="Vertical"
+                            Visibility="{x:Bind HasIcon, Mode=OneWay}">
                             <cpcontrols:IconBox
                                 x:Name="IconBorder"
                                 Width="16"
@@ -41,7 +42,7 @@
                         </StackPanel>
                         <StackPanel
                             Grid.Column="1"
-                            Margin="8,0,0,0"
+                            Margin="4,0,0,0"
                             VerticalAlignment="Center"
                             Background="Transparent"
                             Orientation="Vertical"
@@ -53,7 +54,6 @@
                                 Margin="0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                CharacterSpacing="12"
                                 FontSize="14"
                                 Foreground="{ThemeResource TextFillColorPrimary}"
                                 Text="{x:Bind Name, Mode=OneWay}"

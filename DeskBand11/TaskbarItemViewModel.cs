@@ -110,5 +110,7 @@ namespace DeskBand11
 
         public string Name => _model.Name;
 
+        // TODO! BODGY: CmdPal does this better, referencing actual theme
+        public bool HasIcon => Icon != null && (!string.IsNullOrEmpty(Icon.Dark.Icon) || Icon.Dark.Data != null);
     }
 }
