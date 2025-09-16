@@ -11,14 +11,19 @@ namespace DeskBand11
     /// </summary>
     public sealed partial class BandsItemsControl : UserControl
     {
-
         public ObservableCollection<TaskbarItemViewModel> Bands { get; set; }
 
         public BandsItemsControl()
         {
             Bands = new ObservableCollection<TaskbarItemViewModel>();
-            Bands.Add(new ButtonsWithLabelsTaskBand());
-            Bands.Add(new HelloWorldTaskBand());
+
+            // Add the TaskbarItemViewModel's you want here to extend the taskbar.
+
+            // These two are testing samples
+            // Bands.Add(new ButtonsWithLabelsTaskBand());
+            // Bands.Add(new HelloWorldTaskBand());
+
+            // This is the AudioBand recreation
             Bands.Add(new AudioBand());
             InitializeComponent();
         }

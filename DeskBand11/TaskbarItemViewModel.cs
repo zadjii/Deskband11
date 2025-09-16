@@ -6,9 +6,6 @@ using Microsoft.UI.Dispatching;
 using System.Collections.ObjectModel;
 using Windows.Foundation;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace DeskBand11
 {
     // If I had a CmdPal interface for this, the idl would look like this:
