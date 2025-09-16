@@ -1,10 +1,12 @@
 using JPSoftworks.MediaControlsExtension.Model;
 using JPSoftworks.MediaControlsExtension.Services;
+using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using Windows.Storage.Streams;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -38,6 +40,7 @@ namespace DeskBand11
 
             this.VisibilityChanged += MainWindow_VisibilityChanged;
             this.ItemsBar.SizeChanged += ItemsBar_SizeChanged;
+            this.Root.SizeChanged += ItemsBar_SizeChanged;
         }
 
         private void ItemsBar_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
@@ -108,6 +111,9 @@ namespace DeskBand11
             //scaledBounds.top += windowRect.top;
             //scaledBounds.bottom += windowRect.top;
 
+            Debug.WriteLine($"ActualWidth: {clipToElement.ActualWidth}");
+            Debug.WriteLine($"scaledBounds.Width: {scaledBounds.Width} ({scaledBounds.Width / scaleFactor})");
+
             PInvoke.SetWindowRgn(_hwnd,
                 PInvoke.CreateRectRgn(scaledBounds.left,
                     scaledBounds.top, scaledBounds.right, scaledBounds.bottom),
@@ -165,13 +171,96 @@ namespace DeskBand11
                 Subtitle = media.Artist;
 
                 Icon = media.ThumbnailInfo?.Stream is IRandomAccessStream stream ? IconInfo.FromStream(stream) : new(string.Empty);
+                CreateButtonsIfNeeded();
             }
             else
             {
                 Title = "No media playing";
                 Subtitle = string.Empty;
                 Icon = new(string.Empty);
+                ClearButtons();
             }
         }
+
+        private void CreateButtonsIfNeeded()
+        {
+            if (Buttons.Count == 0)
+            {
+                PrevNextTrack prev = new(false, _service);
+                TogglePlayback play = new(_service);
+                PrevNextTrack next = new(true, _service);
+                CommandViewModel previousTrackButton = new(prev);
+                CommandViewModel playButton = new(play);
+                CommandViewModel nextTrackButton = new(next);
+                Buttons.Add(previousTrackButton);
+                Buttons.Add(playButton);
+                Buttons.Add(nextTrackButton);
+            }
+
+        }
+
+        private void ClearButtons()
+        {
+            Buttons.Clear();
+        }
     }
+
+    internal partial class PrevNextTrack : InvokableCommand
+    {
+        private readonly bool _next = false;
+        private readonly MediaService _service;
+
+        public override IconInfo Icon => _next ? new IconInfo("\uE893") : new IconInfo("\uE892");
+
+
+        public override ICommandResult Invoke()
+        {
+            Windows.Media.Control.GlobalSystemMediaTransportControlsSession? session = _service.CurrentSource?.Session;
+            if (session == null)
+            {
+                return CommandResult.KeepOpen();
+            }
+
+            if (_next)
+            {
+                session.TrySkipNextAsync().AsTask().ConfigureAwait(false);
+            }
+            else
+            {
+                session.TrySkipPreviousAsync().AsTask().ConfigureAwait(false);
+            }
+            return CommandResult.KeepOpen();
+        }
+
+        internal PrevNextTrack(bool next, MediaService service)
+        {
+            _next = next;
+            _service = service;
+        }
+    }
+    internal partial class TogglePlayback : InvokableCommand
+    {
+        private readonly MediaService _service;
+
+        public override IconInfo Icon => new("\uE768");
+
+
+        public override ICommandResult Invoke()
+        {
+            Windows.Media.Control.GlobalSystemMediaTransportControlsSession? session = _service.CurrentSource?.Session;
+            if (session == null)
+            {
+                return CommandResult.KeepOpen();
+            }
+
+            session.TryTogglePlayPauseAsync().AsTask().ConfigureAwait(false);
+            return CommandResult.KeepOpen();
+        }
+
+        internal TogglePlayback(MediaService service)
+        {
+            _service = service;
+        }
+    }
+
 }

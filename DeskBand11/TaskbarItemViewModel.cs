@@ -1,6 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
+using Microsoft.UI.Dispatching;
+using System.Collections.ObjectModel;
+using Windows.Foundation;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -58,7 +61,10 @@ namespace DeskBand11
         public virtual IProgressState? Progress { get; set; } = null;
         public virtual IconInfo HoverPreview { get; set; } = new IconInfo(string.Empty);
         public virtual ICommand? Command { get; set; } = null;
-        public virtual ICommand[]? Buttons { get; set; } = null;
+
+        public ObservableCollection<CommandViewModel> Buttons = new();
+
+        ICommand[]? ITaskbarItem.Buttons => Buttons.ToArray();
 
         IIconInfo ITaskbarItem.Icon => Icon;
 
@@ -67,5 +73,42 @@ namespace DeskBand11
         ////
         // TODO! BODGY: CmdPal does this better, referencing actual theme
         public bool HasIcon => Icon != null && (!string.IsNullOrEmpty(Icon.Dark.Icon) || Icon.Dark.Data != null);
+    }
+
+    public partial class CommandViewModel : ObservableObject, ICommand
+    {
+        private ICommand _model;
+        private DispatcherQueue _queue = DispatcherQueue.GetForCurrentThread();
+
+        public event TypedEventHandler<object, IPropChangedEventArgs>? PropChanged;
+
+        public CommandViewModel(ICommand command)
+        {
+            _model = command;
+            _model.PropChanged += Model_PropChanged;
+        }
+
+        private void Model_PropChanged(object sender, IPropChangedEventArgs args)
+        {
+            _queue.TryEnqueue(DispatcherQueuePriority.Normal, () => { OnPropertyChanged(args.PropertyName); });
+            //var propertyName = args.PropertyName;
+
+            //switch (propertyName)
+            //{
+            //    case (nameof(ICommand.Name)):
+            //        Name = _model.Name;
+            //        break;
+            //    case (nameof(ICommand.Icon)):
+            //        Icon = _model.Icon;
+            //        break;
+            //}
+        }
+
+        public IIconInfo Icon => _model.Icon;
+
+        public string Id => _model.Id;
+
+        public string Name => _model.Name;
+
     }
 }

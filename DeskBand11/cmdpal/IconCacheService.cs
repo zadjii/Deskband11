@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CmdPal.Core.Control.Converters;
-using Microsoft.CommandPalette.Extensions.Toolkit;
+using Microsoft.CommandPalette.Extensions;
 //using Microsoft.CmdPal.Core.ViewModels;
 //using Microsoft.Terminal.UI;
 using Microsoft.UI.Dispatching;
@@ -16,12 +16,12 @@ namespace Microsoft.CmdPal.UI.Helpers;
 
 public sealed class IconCacheService(DispatcherQueue dispatcherQueue)
 {
-    public Task<IconSource?> GetIconSource(IconData icon) =>
+    public Task<IconSource?> GetIconSource(IIconData icon) =>
 
         // todo: actually implement a cache of some sort
         IconToSource(icon);
 
-    private async Task<IconSource?> IconToSource(IconData icon)
+    private async Task<IconSource?> IconToSource(IIconData icon)
     {
         try
         {

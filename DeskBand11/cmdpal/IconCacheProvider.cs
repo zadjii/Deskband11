@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CmdPal.UI.Controls;
+using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
 namespace Microsoft.CmdPal.UI.Helpers;
@@ -23,7 +24,7 @@ public static partial class IconCacheProvider
             return;
         }
 
-        if (args.Key is IconData iconData)
+        if (args.Key is IIconData iconData)
         {
             CommunityToolkit.Common.Deferred.EventDeferral deferral = args.GetDeferral();
 
