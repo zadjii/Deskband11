@@ -40,7 +40,10 @@ namespace DeskBand11
     public partial class TaskbarItemViewModel : ObservableObject, ITaskbarItem
     {
         public virtual string Id { get; set; } = string.Empty;
-        public virtual IconInfo Icon { get; set; } = new IconInfo(string.Empty);
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasIcon))]
+        public partial IconInfo Icon { get; set; } = new(string.Empty);
 
         [ObservableProperty]
         public partial string Title
@@ -60,5 +63,9 @@ namespace DeskBand11
         IIconInfo ITaskbarItem.Icon => Icon;
 
         IIconInfo ITaskbarItem.HoverPreview => HoverPreview;
+
+        ////
+        // TODO! BODGY: CmdPal does this better, referencing actual theme
+        public bool HasIcon => Icon != null && (!string.IsNullOrEmpty(Icon.Dark.Icon) || Icon.Dark.Data != null);
     }
 }

@@ -3,7 +3,9 @@
     x:Class="DeskBand11.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cpcontrols="using:Microsoft.CmdPal.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:help="using:Microsoft.CmdPal.UI.Helpers"
     xmlns:local="using:DeskBand11"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:winuiex="using:WinUIEx"
@@ -17,10 +19,11 @@
 
     <Grid
         x:Name="Root"
-        Height="40"
+        Height="44"
         Margin="0,0,0,0"
         HorizontalAlignment="Right"
         VerticalAlignment="Top"
+        Background="Transparent"
         BorderBrush="Red"
         BorderThickness="0">
 
@@ -28,35 +31,66 @@
             <ResourceDictionary>
 
                 <DataTemplate x:Key="DeskbandTemplate" x:DataType="local:TaskbarItemViewModel">
-                    <StackPanel Background="Transparent" Orientation="Vertical">
-                        <TextBlock
-                            x:Name="TitleTextBlock"
-                            MaxWidth="200"
-                            MaxHeight="40"
-                            Margin="0"
-                            HorizontalAlignment="Left"
+                    <Grid
+                        AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
+                        Background="Transparent"
+                        ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel
+                            Grid.Column="0"
                             VerticalAlignment="Center"
-                            CharacterSpacing="12"
-                            FontSize="14"
-                            Foreground="{ThemeResource TextFillColorPrimary}"
-                            Text="{x:Bind Title, Mode=OneWay}"
-                            TextAlignment="Left"
-                            TextTrimming="WordEllipsis"
-                            TextWrapping="NoWrap" />
-                        <TextBlock
-                            x:Name="SubTitleTextBlock"
-                            MaxWidth="152"
-                            MaxHeight="40"
-                            HorizontalAlignment="Left"
+                            Background="Red"
+                            Orientation="Vertical"
+                            Visibility="{x:Bind HasIcon, Mode=OneWay}">
+                            <cpcontrols:IconBox
+                                x:Name="IconBorder"
+                                Width="32"
+                                Height="32"
+                                VerticalAlignment="Center"
+                                AutomationProperties.AccessibilityView="Raw"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                SourceKey="{x:Bind Icon, Mode=OneWay}"
+                                SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Column="1"
                             VerticalAlignment="Center"
-                            CharacterSpacing="11"
-                            FontSize="10"
-                            Foreground="{ThemeResource TextFillColorTertiary}"
-                            Text="{x:Bind Subtitle, Mode=OneWay}"
-                            TextAlignment="Center"
-                            TextTrimming="WordEllipsis"
-                            TextWrapping="NoWrap" />
-                    </StackPanel>
+                            Background="Transparent"
+                            Orientation="Vertical">
+                            <TextBlock
+                                x:Name="TitleTextBlock"
+                                MaxWidth="200"
+                                MaxHeight="40"
+                                Margin="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                CharacterSpacing="12"
+                                FontSize="14"
+                                Foreground="{ThemeResource TextFillColorPrimary}"
+                                Text="{x:Bind Title, Mode=OneWay}"
+                                TextAlignment="Left"
+                                TextTrimming="WordEllipsis"
+                                TextWrapping="NoWrap" />
+                            <TextBlock
+                                x:Name="SubTitleTextBlock"
+                                MaxWidth="152"
+                                MaxHeight="40"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                CharacterSpacing="11"
+                                FontSize="10"
+                                Foreground="{ThemeResource TextFillColorTertiary}"
+                                Text="{x:Bind Subtitle, Mode=OneWay}"
+                                TextAlignment="Center"
+                                TextTrimming="WordEllipsis"
+                                TextWrapping="NoWrap" />
+                        </StackPanel>
+                    </Grid>
                 </DataTemplate>
             </ResourceDictionary>
         </Grid.Resources>

@@ -1,9 +1,11 @@
 using JPSoftworks.MediaControlsExtension.Model;
 using JPSoftworks.MediaControlsExtension.Services;
+using Microsoft.CommandPalette.Extensions.Toolkit;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using Windows.Storage.Streams;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -161,11 +163,14 @@ namespace DeskBand11
             {
                 Title = media.Name;
                 Subtitle = media.Artist;
+
+                Icon = media.ThumbnailInfo?.Stream is IRandomAccessStream stream ? IconInfo.FromStream(stream) : new(string.Empty);
             }
             else
             {
                 Title = "No media playing";
                 Subtitle = string.Empty;
+                Icon = new(string.Empty);
             }
         }
     }
