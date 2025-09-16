@@ -1,6 +1,6 @@
 * [ ] Handle changes to display topogrophy
-* [ ] Refactor so that the ItemsControl is in a separate control / page
-* [ ] Buttons
+* [x] Refactor so that the ItemsControl is in a separate control / page
+* [x] Buttons
 * [ ] add settings
   * [ ] control which bands are enabled
   * [ ] control individual bands max width
