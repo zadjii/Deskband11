@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DeskBand11 (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "DeskBand11 (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
