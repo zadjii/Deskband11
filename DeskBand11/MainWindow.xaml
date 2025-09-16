@@ -22,16 +22,16 @@
         HorizontalAlignment="Right"
         VerticalAlignment="Top"
         BorderBrush="Red"
-        BorderThickness="1">
+        BorderThickness="0">
 
         <Grid.Resources>
             <ResourceDictionary>
 
                 <DataTemplate x:Key="DeskbandTemplate" x:DataType="local:TaskbarItemViewModel">
-                    <StackPanel Background="Green" Orientation="Vertical">
+                    <StackPanel Background="Transparent" Orientation="Vertical">
                         <TextBlock
                             x:Name="TitleTextBlock"
-                            MaxWidth="152"
+                            MaxWidth="200"
                             MaxHeight="40"
                             Margin="0"
                             HorizontalAlignment="Left"
@@ -40,7 +40,7 @@
                             FontSize="14"
                             Foreground="{ThemeResource TextFillColorPrimary}"
                             Text="{x:Bind Title, Mode=OneWay}"
-                            TextAlignment="Center"
+                            TextAlignment="Left"
                             TextTrimming="WordEllipsis"
                             TextWrapping="NoWrap" />
                         <TextBlock
@@ -78,7 +78,7 @@
             ItemsSource="{x:Bind Bands, Mode=OneWay}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="4" />
+                    <StackPanel Orientation="Horizontal" Spacing="16" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ItemsControl>
