@@ -23,8 +23,6 @@ namespace DeskBand11
         IRecipient<QuitMessage>
     {
         private readonly uint WM_TASKBAR_RESTART;
-        private readonly uint UxdDisplayChangeMessage;
-        private readonly uint HotplugDetected;
         private readonly HWND _hwnd;
         private readonly TrayIconService _trayIconService = new();
         private AppWindow _appWindow;
@@ -42,8 +40,6 @@ namespace DeskBand11
             InitializeComponent();
 
             WM_TASKBAR_RESTART = PInvoke.RegisterWindowMessage("TaskbarCreated");
-            UxdDisplayChangeMessage = PInvoke.RegisterWindowMessage("UxdDisplayChangeMessage");
-            HotplugDetected = PInvoke.RegisterWindowMessage("HotplugDetected");
 
             _hwnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(this).ToInt32());
 
@@ -57,7 +53,6 @@ namespace DeskBand11
             _appWindow = this.AppWindow;
 
             // Set up custom window procedure to listen for display changes
-
             // LOAD BEARING: If you don't stick the pointer to HotKeyPrc into a
             // member (and instead like, use a local), then the pointer we marshal
             // into the WindowLongPtr will be useless after we leave this function,
@@ -80,20 +75,6 @@ namespace DeskBand11
         {
             MoveToTaskbar();
         }
-
-        //private void SetupDisplayChangeListener()
-        //{
-        //    // Get the current window procedure
-        //    nint currentWndProc = PInvoke.GetWindowLongPtr(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC);
-
-        //    // Create our custom window procedure delegate
-        //    _originalWndProc = Marshal.GetDelegateForFunctionPointer<WNDPROC>(currentWndProc);
-
-        //    // Set our custom window procedure
-        //    nint newWndProcPtr = Marshal.GetFunctionPointerForDelegate<WNDPROC>(CustomWndProc);
-        //    PInvoke.SetWindowLongPtr(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, newWndProcPtr);
-        //}
-
         private LRESULT CustomWndProc(HWND hwnd, uint uMsg, WPARAM wParam, LPARAM lParam)
         {
             // Handle display change messages
@@ -103,57 +84,31 @@ namespace DeskBand11
                 // Use dispatcher to ensure we're on the UI thread
                 DispatcherQueue.TryEnqueue(() => MoveToTaskbar());
             }
-            //else if (uMsg == WM_SETTINGCHANGE)
-            //{
-            //    // Check if this is a display-related setting change
-            //    string? settingName = Marshal.PtrToStringUni(lParam);
-            //    if (settingName == "intl" || settingName == null)
-            //    {
-            //        // This might be a display-related change
-            //        Debug.WriteLine($"WM_SETTINGCHANGE({settingName})");
-            //        _ = Task.Delay(1000).ContinueWith((t) => DispatcherQueue.TryEnqueue(() => MoveToTaskbar()));
-
-            //    }
-            //}
             else if (uMsg == WM_SETTINGCHANGE)
             {
                 if (wParam == (uint)SYSTEM_PARAMETERS_INFO_ACTION.SPI_SETWORKAREA)
                 {
                     Debug.WriteLine($"WM_SETTINGCHANGE(SPI_SETWORKAREA)");
-                    _ = Task.Delay(1000).ContinueWith((t) => DispatcherQueue.TryEnqueue(() => UpdateLayoutForDPI()));
-
+                    DispatcherQueue.TryEnqueue(async () => await UpdateLayoutForDPI());
                 }
             }
-            //else if (uMsg == WM_TASKBAR_RESTART)
-            //{
-
-            //    Debug.WriteLine("WM_TASKBAR_RESTART");
-            //    DispatcherQueue.TryEnqueue(() => UpdateLayoutForDPI());
-            //}
-            //else if (uMsg == UxdDisplayChangeMessage)
-            //{
-
-            //    Debug.WriteLine("UxdDisplayChangeMessage");
-            //    DispatcherQueue.TryEnqueue(() => UpdateLayoutForDPI());
-            //}
-            //else if (uMsg == HotplugDetected)
-            //{
-
-            //    Debug.WriteLine("HotplugDetected");
-            //    DispatcherQueue.TryEnqueue(() => UpdateLayoutForDPI());
-            //}
+            else if (uMsg == WM_TASKBAR_RESTART)
+            {
+                Debug.WriteLine("WM_TASKBAR_RESTART");
+                DispatcherQueue.TryEnqueue(async () => await UpdateLayoutForDPI());
+            }
 
             // Call the original window procedure for all messages
             return PInvoke.CallWindowProc(_originalWndProc, hwnd, uMsg, wParam, lParam);
         }
         private async Task UpdateLayoutForDPI()
         {
+            await Task.Delay(200);
             MoveToTaskbar();
 
             await Task.Delay(200);
             MainContent.Padding = new Thickness(1);
             await Task.Delay(10);
-            //await Task.Yield();
             MainContent.Padding = new Thickness(0);
         }
 
@@ -227,16 +182,6 @@ namespace DeskBand11
             Windows.Win32.Graphics.Gdi.HRGN hrgn = PInvoke.CreateRectRgn(scaledBounds.left,
                     scaledBounds.top, scaledBounds.right, scaledBounds.bottom);
             PInvoke.SetWindowRgn(_hwnd, hrgn, true);
-            //PInvoke.DeleteObject(hrgn);
-
-            //PInvoke.ShowWindow(_hwnd, SHOW_WINDOW_CMD.SW_HIDE);
-            //PInvoke.ShowWindow(_hwnd, SHOW_WINDOW_CMD.SW_SHOWNA);
-            //PInvoke.BringWindowToTop(_hwnd);
-            //if (_appWindow.Presenter is OverlappedPresenter p)
-            //{
-            //    p.IsAlwaysOnTop = false;
-            //    p.IsAlwaysOnTop = true;
-            //}
         }
 
         public void Receive(OpenSettingsMessage message)
@@ -254,13 +199,6 @@ namespace DeskBand11
 
         private void MainWindow_Closed(object sender, WindowEventArgs args)
         {
-            // // Restore original window procedure if we have one
-            // if (_originalWndProc != null)
-            // {
-            //     var originalWndProcPtr = Marshal.GetFunctionPointerForDelegate(_originalWndProc);
-            //     PInvoke.SetWindowLongPtr(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, originalWndProcPtr);
-            // }
-
             _trayIconService.Destroy();
             Environment.Exit(0);
         }
