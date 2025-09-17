@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI;
+using Microsoft.CmdPal.Common.Helpers;
 using Microsoft.CmdPal.UI.Helpers;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
@@ -28,6 +29,7 @@ namespace DeskBand11
         private readonly HWND _hwnd;
         private readonly TrayIconService _trayIconService = new();
         private AppWindow _appWindow;
+        private Tasklist _tasklist;
 
         // Constants for Windows messages related to display changes
         private const int WM_DISPLAYCHANGE = 0x007E;
@@ -62,6 +64,8 @@ namespace DeskBand11
 
             _appWindow = this.AppWindow;
 
+            _tasklist = new Tasklist();
+
             // Set up custom window procedure to listen for display changes
             // LOAD BEARING: If you don't stick the pointer to HotKeyPrc into a
             // member (and instead like, use a local), then the pointer we marshal
@@ -80,7 +84,7 @@ namespace DeskBand11
 
         private void ItemsBar_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
         {
-            ClipWindow();
+            // ClipWindow();
         }
 
         private void MainWindow_VisibilityChanged(object sender, Microsoft.UI.Xaml.WindowVisibilityChangedEventArgs args)
@@ -154,6 +158,17 @@ namespace DeskBand11
                 return;
             }
 
+            _tasklist.Update();
+            List<TasklistButton> buttons = _tasklist.GetButtons();
+            int maxRight = 0;
+            foreach (TasklistButton button in buttons)
+            {
+                int right = button.X + button.Width;
+                if (right > maxRight) { maxRight = right; }
+            }
+            Debug.WriteLine($"maxRight: {maxRight}");
+            TaskbarButtons.Width = new GridLength(maxRight);
+
             HWND thisWindow = _hwnd;
 
             HWND taskbarWindow = PInvoke.FindWindow("Shell_TrayWnd", null);
@@ -190,7 +205,7 @@ namespace DeskBand11
                          newWindowRect.Height,
                          SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
 
-            ClipWindow();
+            //ClipWindow();
         }
 
         private void ClipWindow()
