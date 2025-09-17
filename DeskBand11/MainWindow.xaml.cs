@@ -84,7 +84,7 @@ namespace DeskBand11
 
         private void ItemsBar_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
         {
-            // ClipWindow();
+            ClipWindow();
         }
 
         private void MainWindow_VisibilityChanged(object sender, Microsoft.UI.Xaml.WindowVisibilityChangedEventArgs args)
@@ -158,16 +158,6 @@ namespace DeskBand11
                 return;
             }
 
-            _tasklist.Update();
-            List<TasklistButton> buttons = _tasklist.GetButtons();
-            int maxRight = 0;
-            foreach (TasklistButton button in buttons)
-            {
-                int right = button.X + button.Width;
-                if (right > maxRight) { maxRight = right; }
-            }
-            Debug.WriteLine($"maxRight: {maxRight}");
-            TaskbarButtons.Width = new GridLength(maxRight);
 
             HWND thisWindow = _hwnd;
 
@@ -205,11 +195,31 @@ namespace DeskBand11
                          newWindowRect.Height,
                          SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
 
-            //ClipWindow();
+            ClipWindow();
         }
 
         private void ClipWindow()
         {
+            _tasklist.Update();
+            List<TasklistButton> buttons = _tasklist.GetButtons();
+            int maxRight = 0;
+            foreach (TasklistButton button in buttons)
+            {
+                int right = button.X + button.Width;
+                if (right > maxRight) { maxRight = right; }
+            }
+            Debug.WriteLine($"maxRight: {maxRight}");
+            TaskbarButtons.Width = new GridLength(maxRight);
+
+            int taskbarReserverdInDips = 120 + maxRight;
+            double forContent = Root.ActualWidth - taskbarReserverdInDips - TrayIcons.Width.Value;
+            //ContentColumn.Width = Root.ActualWidth == 0 ? GridLength.Auto : new GridLength(forContent);
+            ContentColumn.MaxWidth = Root.ActualWidth == 0 ? double.MaxValue : forContent;
+            //MainContent.MaxWidth = forContent;
+            Debug.WriteLine($"forContent: {forContent}");
+
+            return;
+
             FrameworkElement clipToElement = MainContent;
             System.Numerics.Vector2 clipToSize = clipToElement.ActualSize;
             Windows.Foundation.Point position = clipToElement.TransformToVisual(this.Content).TransformPoint(new());

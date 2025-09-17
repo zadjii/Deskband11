@@ -36,7 +36,8 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="WindowsLogo" Width="120" />
             <ColumnDefinition x:Name="TaskbarButtons" Width="0" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition x:Name="Mid" Width="*" />
+            <ColumnDefinition x:Name="ContentColumn" Width="Auto" />
             <ColumnDefinition x:Name="TrayIcons" Width="400" />
         </Grid.ColumnDefinitions>
 
@@ -49,12 +50,15 @@
             BorderBrush="Green"
             BorderThickness="2" />
 
-        <ContentControl x:Name="MainContent" Grid.Column="2">
+        <ContentControl
+            x:Name="MainContent"
+            Grid.Column="3"
+            HorizontalAlignment="Right">
             <local:BandsItemsControl />
         </ContentControl>
 
         <Border
-            Grid.Column="3"
+            Grid.Column="4"
             BorderBrush="Yellow"
             BorderThickness="2" />
 
