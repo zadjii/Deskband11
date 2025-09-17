@@ -59,11 +59,14 @@ SetParent
 FindWindow
 FindWindowEx
 GetWindowLong
+GetWindowLongPtr
 SetWindowLong
 SetWindowPos
 WINDOW_STYLE
 SetWindowRgn
 CreateRectRgn
+SYSTEM_PARAMETERS_INFO_ACTION
+BringWindowToTop
 
 SHDefExtractIcon
 GetIconInfo
