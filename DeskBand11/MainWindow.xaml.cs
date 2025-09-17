@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.WinUI;
 using Microsoft.CmdPal.UI.Helpers;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using System.Diagnostics;
@@ -9,7 +11,6 @@ using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 using WinUIEx;
-
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -37,6 +38,9 @@ namespace DeskBand11
         private WNDPROC? _originalWndProc;
         private WNDPROC? _hotkeyWndProc;
 
+        // Debouncer to throttle UpdateLayoutForDPI calls
+        private readonly DispatcherQueueTimer _updateLayoutDebouncer;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -44,6 +48,9 @@ namespace DeskBand11
             WM_TASKBAR_RESTART = PInvoke.RegisterWindowMessage("TaskbarCreated");
 
             _hwnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(this).ToInt32());
+
+            // Initialize debouncer with 300ms delay to throttle UpdateLayoutForDPI calls
+            _updateLayoutDebouncer = DispatcherQueue.CreateTimer();
 
             this.VisibilityChanged += MainWindow_VisibilityChanged;
             // this.ItemsBar.SizeChanged += ItemsBar_SizeChanged;
@@ -94,7 +101,8 @@ namespace DeskBand11
                 if (wParam == (uint)SYSTEM_PARAMETERS_INFO_ACTION.SPI_SETWORKAREA)
                 {
                     Debug.WriteLine($"WM_SETTINGCHANGE(SPI_SETWORKAREA)");
-                    DispatcherQueue.TryEnqueue(async () => await UpdateLayoutForDPI());
+                    // Use debounced call to throttle rapid successive calls
+                    DispatcherQueue.TryEnqueue(() => TriggerDebouncedLayoutUpdate());
                 }
             }
             else if (uMsg == WM_DESTROY)
@@ -115,15 +123,27 @@ namespace DeskBand11
             // Call the original window procedure for all messages
             return PInvoke.CallWindowProc(_originalWndProc, hwnd, uMsg, wParam, lParam);
         }
+
         private async Task UpdateLayoutForDPI()
         {
-            await Task.Delay(200);
             MoveToTaskbar();
 
             await Task.Delay(200);
             MainContent.Padding = new Thickness(1);
             await Task.Delay(10);
             MainContent.Padding = new Thickness(0);
+        }
+
+        private void TriggerDebouncedLayoutUpdate()
+        {
+            _updateLayoutDebouncer.Debounce(
+                () =>
+                {
+                    UpdateLayoutForDPI();
+                },
+                interval: TimeSpan.FromMilliseconds(200),
+                immediate: false);
+
         }
 
         private void MoveToTaskbar()
@@ -235,6 +255,9 @@ namespace DeskBand11
         {
             this.VisibilityChanged -= MainWindow_VisibilityChanged;
             this.Root.SizeChanged -= ItemsBar_SizeChanged;
+
+            // Stop the debouncer to prevent any pending calls
+            _updateLayoutDebouncer?.Stop();
 
             DispatcherQueue.TryEnqueue(() => Close());
         }
