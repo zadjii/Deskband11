@@ -9,6 +9,7 @@
     xmlns:help="using:Microsoft.CmdPal.UI.Helpers"
     xmlns:local="using:DeskBand11"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    SizeChanged="OnSizeChanged"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -75,7 +76,8 @@
                 <Grid
                     AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
                     Background="Transparent"
-                    ColumnSpacing="8">
+                    ColumnSpacing="8"
+                    Visibility="{x:Bind ShouldBeVisible, Mode=OneWay}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -85,7 +87,6 @@
                     <StackPanel
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Background="Red"
                         Orientation="Vertical"
                         Visibility="{x:Bind HasIcon, Mode=OneWay}">
                         <cpcontrols:IconBox
@@ -102,7 +103,8 @@
                         Grid.Column="1"
                         VerticalAlignment="Center"
                         Background="Transparent"
-                        Orientation="Vertical">
+                        Orientation="Vertical"
+                        Visibility="{x:Bind HasText, Mode=OneWay}">
                         <TextBlock
                             x:Name="TitleTextBlock"
                             MaxWidth="200"
@@ -135,6 +137,85 @@
                     <ItemsRepeater
                         Grid.Column="2"
                         Margin="0,0,8,0"
+                        HorizontalAlignment="Left"
+                        ItemTemplate="{StaticResource CommandButtonTemplate}"
+                        ItemsSource="{x:Bind Buttons, Mode=OneWay}">
+
+                        <ItemsRepeater.Layout>
+                            <StackLayout
+                                x:Name="HorizontalStackLayout"
+                                Orientation="Horizontal"
+                                Spacing="8" />
+                        </ItemsRepeater.Layout>
+                    </ItemsRepeater>
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="FlyoutTemplate" x:DataType="local:TaskbarItemViewModel">
+                <Grid
+                    AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
+                    Background="Transparent"
+                    ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Orientation="Vertical"
+                        Visibility="{x:Bind HasIcon, Mode=OneWay}">
+                        <cpcontrols:IconBox
+                            x:Name="IconBorder"
+                            Width="32"
+                            Height="32"
+                            VerticalAlignment="Center"
+                            AutomationProperties.AccessibilityView="Raw"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            SourceKey="{x:Bind Icon, Mode=OneWay}"
+                            SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        Orientation="Vertical"
+                        Visibility="{x:Bind HasText, Mode=OneWay}">
+                        <TextBlock
+                            x:Name="TitleTextBlock"
+                            MaxWidth="200"
+                            MaxHeight="40"
+                            Margin="0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            CharacterSpacing="12"
+                            FontSize="14"
+                            Foreground="{ThemeResource TextFillColorPrimary}"
+                            Text="{x:Bind Title, Mode=OneWay}"
+                            TextAlignment="Left"
+                            TextTrimming="WordEllipsis"
+                            TextWrapping="NoWrap" />
+                        <TextBlock
+                            x:Name="SubTitleTextBlock"
+                            MaxWidth="152"
+                            MaxHeight="40"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            CharacterSpacing="11"
+                            FontSize="10"
+                            Foreground="{ThemeResource TextFillColorTertiary}"
+                            Text="{x:Bind Subtitle, Mode=OneWay}"
+                            TextAlignment="Center"
+                            TextTrimming="WordEllipsis"
+                            TextWrapping="NoWrap" />
+                    </StackPanel>
+
+                    <ItemsRepeater
+                        Grid.Column="2"
+                        Margin="0,0,8,0"
+                        HorizontalAlignment="Left"
                         ItemTemplate="{StaticResource CommandButtonTemplate}"
                         ItemsSource="{x:Bind Buttons, Mode=OneWay}">
 
@@ -150,21 +231,60 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <ItemsControl
-        x:Name="ItemsBar"
-        Grid.Column="0"
-        MinWidth="200"
-        VerticalAlignment="Top"
-        Background="Blue"
-        BorderBrush="Blue"
-        BorderThickness="1"
-        IsTabStop="False"
-        ItemTemplate="{StaticResource DeskbandTemplate}"
-        ItemsSource="{x:Bind Bands, Mode=OneWay}">
-        <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-                <StackPanel Orientation="Horizontal" Spacing="16" />
-            </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-    </ItemsControl>
+    <StackPanel Margin="0,0,4,0" Orientation="Horizontal">
+
+        <ItemsControl
+            x:Name="ItemsBar"
+            Grid.Column="0"
+            MinWidth="200"
+            VerticalAlignment="Top"
+            Background="Blue"
+            BorderBrush="Blue"
+            BorderThickness="1"
+            IsTabStop="False"
+            ItemTemplate="{StaticResource DeskbandTemplate}"
+            ItemsSource="{x:Bind Bands, Mode=OneWay}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="16" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+
+        <Button
+            x:Name="MoreButton"
+            Padding="4"
+            Style="{StaticResource EllipsisButton}">
+            <Image
+                Width="24"
+                Height="32"
+                Source="/Assets/Deskband.png" />
+            <Button.Flyout>
+                <Flyout Placement="BottomEdgeAlignedRight" ShouldConstrainToRootBounds="False">
+                    <ItemsControl
+                        x:Name="ItemsFlyout"
+                        Grid.Column="0"
+                        MinWidth="200"
+                        MaxWidth="380"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Background="Blue"
+                        BorderBrush="Blue"
+                        BorderThickness="1"
+                        IsTabStop="False"
+                        ItemTemplate="{StaticResource FlyoutTemplate}"
+                        ItemsSource="{x:Bind Bands, Mode=OneWay}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel
+                                    HorizontalAlignment="Left"
+                                    Orientation="Vertical"
+                                    Spacing="16" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Flyout>
+            </Button.Flyout>
+        </Button>
+    </StackPanel>
 </UserControl>

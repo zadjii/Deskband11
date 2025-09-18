@@ -28,10 +28,17 @@ namespace DeskBand11
         }
     }
 
-    public partial class AudioBand : TaskbarItemViewModel
+    public partial class AudioBand : TaskbarItemViewModel, IDisposable
     {
         MediaService _service = new();
         private DispatcherQueue _queue = DispatcherQueue.GetForCurrentThread();
+
+        CommandViewModel _previousTrackButton;
+        CommandViewModel _playButton;
+        CommandViewModel _nextTrackButton;
+        TogglePlayback _togglePlaybackCommand;
+
+        MediaSource? _lastSource = null;
 
         public AudioBand()
         {
@@ -41,6 +48,11 @@ namespace DeskBand11
             _service.MediaSourcesChanged += MediaSourcesChanged;
             _service.CurrentMediaSourceChanged += CurrentMediaSourceChanged;
             _service.CurrentMediaPlaybackChanged += CurrentMediaPlaybackChanged;
+
+            _togglePlaybackCommand = new TogglePlayback(_service);
+            _previousTrackButton = new(new PrevNextTrack(false, _service));
+            _playButton = new(_togglePlaybackCommand);
+            _nextTrackButton = new(new PrevNextTrack(true, _service));
         }
 
         private void CurrentMediaPlaybackChanged(object? sender, EventArgs e)
@@ -51,6 +63,18 @@ namespace DeskBand11
         private void CurrentMediaSourceChanged(object? sender, MediaSource? e)
         {
             UpdateTitle();
+            if (_service.CurrentSource != _lastSource)
+            {
+                if (_lastSource != null)
+                {
+                    _lastSource.ThumbnailChanged -= ThumbnailChanged;
+                }
+                _lastSource = _service.CurrentSource;
+                if (_lastSource != null)
+                {
+                    _lastSource.ThumbnailChanged += ThumbnailChanged;
+                }
+            }
         }
 
         private void MediaSourcesChanged(object? sender, EventArgs e)
@@ -62,6 +86,12 @@ namespace DeskBand11
         {
             _queue.TryEnqueue(UpdateTitleOnUiThread);
         }
+
+        private void ThumbnailChanged(object? sender, EventArgs e)
+        {
+            _queue.TryEnqueue(() => UpdateIconOnUiThread(_lastSource));
+        }
+
         private void UpdateTitleOnUiThread()
         {
             if (_service.CurrentSource is MediaSource media)
@@ -69,8 +99,10 @@ namespace DeskBand11
                 Title = media.Name;
                 Subtitle = media.Artist;
 
-                Icon = media.ThumbnailInfo?.Stream is IRandomAccessStream stream ? IconInfo.FromStream(stream) : new(string.Empty);
                 CreateButtonsIfNeeded();
+                _togglePlaybackCommand.SetIsPlaying(media.IsPlaying);
+
+                // UpdateIconOnUiThread(media).ConfigureAwait(false);
             }
             else
             {
@@ -80,20 +112,17 @@ namespace DeskBand11
                 ClearButtons();
             }
         }
-
+        private void UpdateIconOnUiThread(MediaSource? media)
+        {
+            Icon = media?.ThumbnailInfo?.Stream is IRandomAccessStream stream ? IconInfo.FromStream(stream) : new(string.Empty);
+        }
         private void CreateButtonsIfNeeded()
         {
             if (Buttons.Count == 0)
             {
-                PrevNextTrack prev = new(false, _service);
-                TogglePlayback play = new(_service);
-                PrevNextTrack next = new(true, _service);
-                CommandViewModel previousTrackButton = new(prev);
-                CommandViewModel playButton = new(play);
-                CommandViewModel nextTrackButton = new(next);
-                Buttons.Add(previousTrackButton);
-                Buttons.Add(playButton);
-                Buttons.Add(nextTrackButton);
+                Buttons.Add(_previousTrackButton);
+                Buttons.Add(_playButton);
+                Buttons.Add(_nextTrackButton);
             }
 
         }
@@ -101,6 +130,11 @@ namespace DeskBand11
         private void ClearButtons()
         {
             Buttons.Clear();
+        }
+
+        public void Dispose()
+        {
+            _service?.Dispose();
         }
     }
 
@@ -162,12 +196,11 @@ namespace DeskBand11
         {
             _service = service;
             Icon = PlayIcon;
-            _service.CurrentMediaPlaybackChanged += CurrentMediaPlaybackChanged;
         }
 
-        private void CurrentMediaPlaybackChanged(object? sender, EventArgs e)
+        public void SetIsPlaying(bool isPlaying)
         {
-            Icon = _service.CurrentSource?.IsPlaying ?? false ? PauseIcon : PlayIcon;
+            Icon = isPlaying ? PauseIcon : PlayIcon;
         }
     }
 }

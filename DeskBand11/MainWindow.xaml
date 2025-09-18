@@ -23,7 +23,7 @@
         x:Name="Root"
         Height="44"
         Margin="0,0,0,0"
-        HorizontalAlignment="Right"
+        HorizontalAlignment="Stretch"
         VerticalAlignment="Top"
         Background="Transparent"
         BorderBrush="Red"
@@ -34,13 +34,33 @@
         </Grid.Resources>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="400" />
+            <ColumnDefinition x:Name="WindowsLogo" Width="60" />
+            <ColumnDefinition x:Name="TaskbarButtons" Width="0" />
+            <ColumnDefinition x:Name="Mid" Width="*" />
+            <ColumnDefinition x:Name="ContentColumn" Width="Auto" />
+            <ColumnDefinition x:Name="TrayIcons" Width="400" />
         </Grid.ColumnDefinitions>
 
-        <ContentControl x:Name="MainContent" Grid.Column="0">
-            <local:BandsItemsControl />
+        <Border
+            Grid.Column="0"
+            BorderBrush="Blue"
+            BorderThickness="0" />
+        <Border
+            Grid.Column="1"
+            BorderBrush="Green"
+            BorderThickness="0" />
+
+        <ContentControl
+            x:Name="MainContent"
+            Grid.Column="3"
+            HorizontalAlignment="Right">
+            <local:BandsItemsControl x:Name="DeskbandsControl" />
         </ContentControl>
+
+        <Border
+            Grid.Column="4"
+            BorderBrush="Yellow"
+            BorderThickness="0" />
 
     </Grid>
 </winuiex:WindowEx>

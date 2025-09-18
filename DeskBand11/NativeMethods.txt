@@ -83,3 +83,8 @@ BITMAPINFO
 BITMAPINFOHEADER
 ICONINFO
 HICON
+
+IUIAutomation
+IUIAutomationElement
+IUIAutomationCondition
+UIA_PROPERTY_ID
