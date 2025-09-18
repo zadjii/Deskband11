@@ -5,6 +5,7 @@
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.System.Com;
 using Windows.Win32.UI.Accessibility;
 
 namespace Microsoft.CmdPal.Common.Helpers;
@@ -90,7 +91,15 @@ public sealed partial class Tasklist : IDisposable
         // Initialize UI Automation if not already done
         if (_automation == null)
         {
-            _automation = (IUIAutomation)new CUIAutomation();
+            // Create UI Automation instance using CoCreateInstance for AOT safety
+            Guid clsid = new("ff48dba4-60ef-4201-aa87-54103eef594e");
+            Guid iid = typeof(IUIAutomation).GUID;
+            HRESULT hr = PInvoke.CoCreateInstance(clsid, null, CLSCTX.CLSCTX_ALL, iid, out object? automation);
+            if (hr.Failed || automation == null)
+            {
+                return;
+            }
+            _automation = (IUIAutomation)automation;
             _trueCondition = _automation.CreateTrueCondition();
         }
 
@@ -293,11 +302,3 @@ public sealed partial class Tasklist : IDisposable
     }
 }
 
-/// <summary>
-/// COM class for UI Automation.
-/// </summary>
-[ComImport]
-[Guid("ff48dba4-60ef-4201-aa87-54103eef594e")]
-internal class CUIAutomation
-{
-}
