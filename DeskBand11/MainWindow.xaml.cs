@@ -57,7 +57,7 @@ namespace DeskBand11
 
             // Timer to re-layout based on available space in taskbar
             _updateTaskbarButtonsTimer = DispatcherQueue.CreateTimer();
-            _updateTaskbarButtonsTimer.Tick += (s, e) => UpdateTaskbarButtons();
+            _updateTaskbarButtonsTimer.Tick += (s, e) => ClipWindow();
             _updateTaskbarButtonsTimer.Interval = TimeSpan.FromMilliseconds(500);
             _updateTaskbarButtonsTimer.Start();
 
@@ -252,7 +252,6 @@ namespace DeskBand11
             }
             //ContentColumn.MaxWidth = Root.ActualWidth == 0 ? double.MaxValue : (forContent > 0 ? forContent : 0);
             //MainContent.MaxWidth = forContent;
-            ClipWindow();
         }
         private void ClipWindow()
         {
