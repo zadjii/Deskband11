@@ -1,7 +1,8 @@
 {
   "profiles": {
     "DeskBand11 (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "nativeDebugging": true
     },
     "DeskBand11 (Unpackaged)": {
       "commandName": "Project"
