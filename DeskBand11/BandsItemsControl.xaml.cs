@@ -36,9 +36,17 @@ namespace DeskBand11
             Debug.WriteLine($"BandsItemsControl.ActualWidth={this.ActualWidth}");
         }
 
+        private void Trace(string s)
+        {
+            if (false)
+            {
+                Debug.WriteLine(s);
+            }
+        }
+
         public void SetMaxAvailableWidth(double availableSpace)
         {
-            Debug.WriteLine($"SetMaxAvailableWidth({availableSpace})");
+            Trace($"SetMaxAvailableWidth({availableSpace})");
 
             double neededSpace = 0.0;
             foreach (TaskbarItemViewModel item in BandsDisplayOrder)
@@ -52,16 +60,16 @@ namespace DeskBand11
                     //double w = fwe.ActualWidth;
                     double w = s.Width;
 
-                    Debug.WriteLine($"  '{item.Title}' needs: {w}");
+                    Trace($"  '{item.Title}' needs: {w}");
                     neededSpace += w;
                 }
             }
 
-            Debug.WriteLine($"  need: {neededSpace}");
+            Trace($"  need: {neededSpace}");
 
             if (neededSpace <= availableSpace)
             {
-                Debug.WriteLine($"  all fit");
+                Trace($"  all fit");
                 MoreButton.Visibility = Visibility.Collapsed;
                 foreach (TaskbarItemViewModel item in BandsDisplayOrder)
                 {
@@ -70,11 +78,11 @@ namespace DeskBand11
             }
             else
             {
-                Debug.WriteLine($"  don't all fit");
+                Trace($"  don't all fit");
                 MoreButton.Visibility = Visibility.Visible;
 
                 double takenSpace = MoreButton.Width;
-                Debug.WriteLine($"    button: {takenSpace}");
+                Trace($"    button: {takenSpace}");
                 foreach (TaskbarItemViewModel item in BandsDisplayOrder)
                 {
                     if (ItemsBar.ContainerFromItem(item) is FrameworkElement fwe)
@@ -82,10 +90,10 @@ namespace DeskBand11
                         Windows.Foundation.Size s = fwe.DesiredSize;
                         //double w = fwe.ActualWidth;
                         double w = s.Width;
-                        Debug.WriteLine($"    {item.Title}: {w + takenSpace}");
+                        Trace($"    {item.Title}: {w + takenSpace}");
                         if (takenSpace + w > availableSpace)
                         {
-                            Debug.WriteLine($"      hide");
+                            Trace($"      hide");
 
                             item.ShouldBeVisible = false;
                         }
