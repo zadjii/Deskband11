@@ -151,7 +151,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Margin="0,0,8,0" Orientation="Horizontal">
+    <StackPanel Margin="0,0,4,0" Orientation="Horizontal">
 
         <ItemsControl
             x:Name="ItemsBar"
