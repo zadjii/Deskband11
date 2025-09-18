@@ -2,7 +2,6 @@
 // The Microsoft Corporation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -136,7 +135,7 @@ public sealed partial class Tasklist : IDisposable
                 if (button != null)
                 {
                     foundButtons.Add(button);
-                    Debug.WriteLine($"  button: {button.Name}");
+                    // Debug.WriteLine($"  button: {button.Name}");
                 }
 
                 Marshal.ReleaseComObject(child);

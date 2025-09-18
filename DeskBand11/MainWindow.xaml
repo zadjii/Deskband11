@@ -27,7 +27,7 @@
         VerticalAlignment="Top"
         Background="Transparent"
         BorderBrush="Red"
-        BorderThickness="1">
+        BorderThickness="0">
 
         <Grid.Resources>
             <ResourceDictionary />

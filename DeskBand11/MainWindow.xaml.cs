@@ -42,6 +42,7 @@ namespace DeskBand11
 
         // Debouncer to throttle UpdateLayoutForDPI calls
         private readonly DispatcherQueueTimer _updateLayoutDebouncer;
+        private readonly DispatcherQueueTimer _updateTaskbarButtonsTimer;
 
         public MainWindow()
         {
@@ -53,6 +54,12 @@ namespace DeskBand11
 
             // Initialize debouncer with 300ms delay to throttle UpdateLayoutForDPI calls
             _updateLayoutDebouncer = DispatcherQueue.CreateTimer();
+
+            // Timer to re-layout based on available space in taskbar
+            _updateTaskbarButtonsTimer = DispatcherQueue.CreateTimer();
+            _updateTaskbarButtonsTimer.Tick += (s, e) => UpdateTaskbarButtons();
+            _updateTaskbarButtonsTimer.Interval = TimeSpan.FromMilliseconds(500);
+            _updateTaskbarButtonsTimer.Start();
 
             this.VisibilityChanged += MainWindow_VisibilityChanged;
             // this.ItemsBar.SizeChanged += ItemsBar_SizeChanged;
@@ -198,28 +205,58 @@ namespace DeskBand11
             ClipWindow();
         }
 
-        private void ClipWindow()
+
+        private void UpdateTaskbarButtons()
         {
             _tasklist.Update();
             List<TasklistButton> buttons = _tasklist.GetButtons();
             int maxRight = 0;
+            int totalWidth = 0;
+            string lastButton = string.Empty;
             foreach (TasklistButton button in buttons)
             {
+                totalWidth += button.Width;
                 int right = button.X + button.Width;
-                if (right > maxRight) { maxRight = right; }
+                if (right > maxRight)
+                {
+                    maxRight = right;
+                    lastButton = button.Name;
+                }
             }
+            Debug.WriteLine($"lastButton: {lastButton}");
             Debug.WriteLine($"maxRight: {maxRight}");
+            Debug.WriteLine($"totalWidth: {totalWidth}");
             TaskbarButtons.Width = new GridLength(maxRight);
 
+            double available = this.Bounds.Width; // Root.ActualWidth
+
             int taskbarReserverdInDips = 120 + maxRight;
-            double forContent = Root.ActualWidth - taskbarReserverdInDips - TrayIcons.Width.Value;
-            //ContentColumn.Width = Root.ActualWidth == 0 ? GridLength.Auto : new GridLength(forContent);
-            ContentColumn.MaxWidth = Root.ActualWidth == 0 ? double.MaxValue : forContent;
-            //MainContent.MaxWidth = forContent;
+            double forContent = available - taskbarReserverdInDips - TrayIcons.Width.Value;
+            Debug.WriteLine($"[{available}]");
+            Debug.WriteLine($"[{WindowsLogo.ActualWidth}][{TaskbarButtons.ActualWidth}][{Mid.ActualWidth}][content={forContent}][{TrayIcons.ActualWidth}]");
+            double reservedContent = WindowsLogo.ActualWidth + TaskbarButtons.ActualWidth /*+ Mid.ActualWidth*/ + TrayIcons.ActualWidth;
+            double forContent2 = available - reservedContent;
             Debug.WriteLine($"forContent: {forContent}");
+            Debug.WriteLine($"{forContent} =? {forContent2}");
+            //ContentColumn.Width = Root.ActualWidth == 0 ? GridLength.Auto : new GridLength(forContent);
+            if (forContent > 0)
+            {
+                ContentColumn.MaxWidth = Root.ActualWidth == 0 ? double.MaxValue : forContent;
+                ContentColumn.Width = GridLength.Auto;
+            }
+            else
+            {
+                ContentColumn.MaxWidth = 0;
+                ContentColumn.Width = new GridLength(0);
 
-            return;
-
+            }
+            //ContentColumn.MaxWidth = Root.ActualWidth == 0 ? double.MaxValue : (forContent > 0 ? forContent : 0);
+            //MainContent.MaxWidth = forContent;
+            ClipWindow();
+        }
+        private void ClipWindow()
+        {
+            UpdateTaskbarButtons();
             FrameworkElement clipToElement = MainContent;
             System.Numerics.Vector2 clipToSize = clipToElement.ActualSize;
             Windows.Foundation.Point position = clipToElement.TransformToVisual(this.Content).TransformPoint(new());
