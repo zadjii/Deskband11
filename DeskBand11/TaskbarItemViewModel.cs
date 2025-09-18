@@ -47,6 +47,7 @@ namespace DeskBand11
         public partial IconInfo Icon { get; set; } = new(string.Empty);
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasText))]
         public partial string Title
         {
             get;
@@ -54,6 +55,7 @@ namespace DeskBand11
         }
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasText))]
         public partial string Subtitle { get; set; }
 
         public virtual IProgressState? Progress { get; set; } = null;
@@ -71,6 +73,9 @@ namespace DeskBand11
         ////
         // TODO! BODGY: CmdPal does this better, referencing actual theme
         public bool HasIcon => Icon != null && (!string.IsNullOrEmpty(Icon.Dark.Icon) || Icon.Dark.Data != null);
+        public bool HasTitle => !string.IsNullOrEmpty(Title);
+        public bool HasSubtitle => !string.IsNullOrEmpty(Subtitle);
+        public bool HasText => HasTitle || HasSubtitle;
     }
 
     public partial class CommandViewModel : ObservableObject, ICommand
