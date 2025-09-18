@@ -23,8 +23,8 @@ namespace DeskBand11
             // Add the TaskbarItemViewModel's you want here to extend the taskbar.
 
             // These two are testing samples
-            Bands.Add(new ButtonsWithLabelsTaskBand());
-            Bands.Add(new HelloWorldTaskBand());
+            //Bands.Add(new ButtonsWithLabelsTaskBand());
+            //Bands.Add(new HelloWorldTaskBand());
 
             // This is the AudioBand recreation
             Bands.Add(new AudioBand());
