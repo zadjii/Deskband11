@@ -70,12 +70,15 @@ namespace DeskBand11
 
         IIconInfo ITaskbarItem.HoverPreview => HoverPreview;
 
-        ////
-        // TODO! BODGY: CmdPal does this better, referencing actual theme
+        //// Specifically view stuff 
+        // TODO! BODGY: CmdPal does this better, referencing actual 
         public bool HasIcon => Icon != null && (!string.IsNullOrEmpty(Icon.Dark.Icon) || Icon.Dark.Data != null);
         public bool HasTitle => !string.IsNullOrEmpty(Title);
         public bool HasSubtitle => !string.IsNullOrEmpty(Subtitle);
         public bool HasText => HasTitle || HasSubtitle;
+
+        [ObservableProperty]
+        public partial bool ShouldBeVisible { get; set; } = true;
     }
 
     public partial class CommandViewModel : ObservableObject, ICommand

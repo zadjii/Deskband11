@@ -34,7 +34,7 @@
         </Grid.Resources>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="WindowsLogo" Width="120" />
+            <ColumnDefinition x:Name="WindowsLogo" Width="60" />
             <ColumnDefinition x:Name="TaskbarButtons" Width="0" />
             <ColumnDefinition x:Name="Mid" Width="*" />
             <ColumnDefinition x:Name="ContentColumn" Width="Auto" />
@@ -54,7 +54,7 @@
             x:Name="MainContent"
             Grid.Column="3"
             HorizontalAlignment="Right">
-            <local:BandsItemsControl />
+            <local:BandsItemsControl x:Name="DeskbandsControl" />
         </ContentControl>
 
         <Border

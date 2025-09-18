@@ -46,11 +46,16 @@ namespace DeskBand11
 
         private double _lastContentSpace = 0;
 
+        private BandsItemsControl? _bandsControl;
+
         public MainWindow()
         {
             InitializeComponent();
 
             WM_TASKBAR_RESTART = PInvoke.RegisterWindowMessage("TaskbarCreated");
+
+            // Comment this out if you don't want to use the extensible deskbands
+            _bandsControl = DeskbandsControl;
 
             _hwnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(this).ToInt32());
 
@@ -89,6 +94,7 @@ namespace DeskBand11
             _appWindow.TitleBar?.PreferredHeightOption = TitleBarHeightOption.Collapsed;
             MoveToTaskbar();
             _trayIconService.SetupTrayIcon(true);
+
 
         }
 
@@ -232,13 +238,14 @@ namespace DeskBand11
 
             double available = this.Bounds.Width; // Root.ActualWidth
 
-            int taskbarReserverdInDips = 120 + maxRight;
+            double taskbarReserverdInDips = WindowsLogo.Width.Value + maxRight; // WindowsLogo.Width.Value=60
             double forContent = available - taskbarReserverdInDips - TrayIcons.Width.Value;
             double reservedContent = WindowsLogo.ActualWidth + TaskbarButtons.ActualWidth /*+ Mid.ActualWidth*/ + TrayIcons.ActualWidth;
             double forContent2 = available - reservedContent;
 
             if (_lastContentSpace == forContent)
             {
+                _bandsControl?.SetMaxAvailableWidth(forContent);
                 return false;
             }
 
@@ -254,15 +261,18 @@ namespace DeskBand11
             {
                 ContentColumn.MaxWidth = Root.ActualWidth == 0 ? double.MaxValue : forContent;
                 ContentColumn.Width = GridLength.Auto;
+                _bandsControl?.SetMaxAvailableWidth(forContent);
             }
             else
             {
                 ContentColumn.MaxWidth = 0;
                 ContentColumn.Width = new GridLength(0);
+                _bandsControl?.SetMaxAvailableWidth(0);
             }
             _lastContentSpace = forContent;
             return true;
         }
+
         private void ClipWindow(bool onlyIfButtonsChanged = false)
         {
             bool taskbarChanged = UpdateTaskbarButtons();
