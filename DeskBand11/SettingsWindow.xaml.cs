@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -13,12 +14,12 @@ namespace DeskBand11
     {
         public ObservableCollection<TaskbarItemViewModel> TaskbarItems { get; }
 
-        private readonly BandsItemsControl _bandsControl;
+        //private readonly BandsItemsControl _bandsControl;
 
         public SettingsWindow(BandsItemsControl bandsControl)
         {
-            _bandsControl = bandsControl;
-            TaskbarItems = _bandsControl.Bands;
+            //_bandsControl = bandsControl;
+            TaskbarItems = bandsControl.Bands;
 
             this.InitializeComponent();
 
@@ -57,9 +58,6 @@ namespace DeskBand11
         {
             try
             {
-                // Set default theme
-                ThemeComboBox.SelectedIndex = 0; // System default
-
                 // Load saved settings if available
                 LoadUserSettings();
             }
@@ -72,9 +70,6 @@ namespace DeskBand11
         private void LoadUserSettings()
         {
             // TODO: Implement loading user settings from storage
-            // For now, use default values
-            AutoStartToggle.IsOn = false;
-            UpdateCheckToggle.IsOn = true;
         }
 
         private void SaveUserSettings()
@@ -143,7 +138,8 @@ namespace DeskBand11
             try
             {
                 // Force refresh of the bands control to reflect enabled/disabled states
-                _bandsControl?.SetMaxAvailableWidth(_bandsControl.ActualWidth);
+                //_bandsControl?.SetMaxAvailableWidth(_bandsControl.ActualWidth);
+                WeakReferenceMessenger.Default.Send<SettingsChangedMessage>();
 
                 Debug.WriteLine("Taskbar item changes applied");
             }
@@ -151,54 +147,6 @@ namespace DeskBand11
             {
                 Debug.WriteLine($"Error applying taskbar changes: {ex.Message}");
                 throw;
-            }
-        }
-
-        private async void ResetAllButton_Click(object sender, RoutedEventArgs e)
-        {
-            ContentDialog dialog = new()
-            {
-                Title = "Reset All Settings",
-                Content = "Are you sure you want to reset all settings to their default values? This action cannot be undone.",
-                PrimaryButtonText = "Reset",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = this.Content.XamlRoot
-            };
-
-            ContentDialogResult result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
-            {
-                ResetAllSettings();
-            }
-        }
-
-        private void ResetAllSettings()
-        {
-            try
-            {
-                // Reset all taskbar items to enabled
-                foreach (TaskbarItemViewModel item in TaskbarItems)
-                {
-                    item.IsEnabled = true;
-                    item.ShouldBeVisible = true;
-                }
-
-                // Reset global settings
-                AutoStartToggle.IsOn = false;
-                UpdateCheckToggle.IsOn = true;
-                ThemeComboBox.SelectedIndex = 0;
-
-                // Save the reset settings
-                SaveUserSettings();
-                ApplyTaskbarItemChanges();
-
-                ShowSuccessDialog("All settings have been reset to default values.");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error resetting settings: {ex.Message}");
-                ShowErrorDialog("Failed to reset settings", ex.Message);
             }
         }
 
@@ -228,50 +176,7 @@ namespace DeskBand11
             }
         }
 
-        /// <summary>
-        /// Gets the current settings state for external use.
-        /// </summary>
-        public SettingsData GetCurrentSettings()
-        {
-            return new SettingsData
-            {
-                AutoStart = AutoStartToggle.IsOn,
-                CheckForUpdates = UpdateCheckToggle.IsOn,
-                Theme = ThemeComboBox.SelectedIndex,
-                TaskbarItemStates = TaskbarItems.ToDictionary(
-                    item => item.Id,
-                    item => new TaskbarItemState
-                    {
-                        IsEnabled = item.IsEnabled,
-                        ShouldBeVisible = item.ShouldBeVisible
-                    })
-            };
-        }
-
         #endregion
     }
 
-    #region Data Classes
-
-    /// <summary>
-    /// Data class to hold the current settings state.
-    /// </summary>
-    public class SettingsData
-    {
-        public bool AutoStart { get; set; }
-        public bool CheckForUpdates { get; set; }
-        public int Theme { get; set; }
-        public Dictionary<string, TaskbarItemState> TaskbarItemStates { get; set; } = new();
-    }
-
-    /// <summary>
-    /// Data class to hold the state of a taskbar item.
-    /// </summary>
-    public class TaskbarItemState
-    {
-        public bool IsEnabled { get; set; }
-        public bool ShouldBeVisible { get; set; }
-    }
-
-    #endregion
 }

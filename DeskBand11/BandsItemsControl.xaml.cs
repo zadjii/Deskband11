@@ -4,6 +4,7 @@ using Microsoft.CmdPal.UI.ViewModels.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -15,13 +16,19 @@ namespace DeskBand11
     /// An empty window that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class BandsItemsControl : UserControl,
-        IRecipient<OpenSettingsMessage>
+        IRecipient<OpenSettingsMessage>,
+        IRecipient<SettingsChangedMessage>,
+        INotifyPropertyChanged
     {
         public ObservableCollection<TaskbarItemViewModel> Bands { get; set; }
-        public IEnumerable<TaskbarItemViewModel> BandsDisplayOrder => Bands.Reverse();
+
+        public IEnumerable<TaskbarItemViewModel> BandsDisplayOrder => Bands.Where(b => b.IsEnabled).Reverse();
 
         private readonly ExtensionService _extensionService;
         private SettingsWindow? _settingsWindow = null;
+        //private SettingsData? _settingsData = null;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public BandsItemsControl()
         {
@@ -38,9 +45,12 @@ namespace DeskBand11
 
             _extensionService = new();
             _ = Task.Run(InitializeExtensions);
+            //InitializeSettings();
 
             WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
+            WeakReferenceMessenger.Default.Register<SettingsChangedMessage>(this);
 
+            Bands.CollectionChanged += (s, e) => PropertyChanged?.Invoke(this, new(nameof(BandsDisplayOrder)));
             InitializeComponent();
         }
 
@@ -131,6 +141,10 @@ namespace DeskBand11
                         foreach (TaskbarItemViewModel item in items)
                         {
                             Bands.Add(item);
+                            //_settingsData?.TaskbarItemStates?.Add(item.Id, new TaskbarItemState
+                            //{
+                            //    IsEnabled = item.IsEnabled,
+                            //});
                         }
                     });
                 }
@@ -155,6 +169,50 @@ namespace DeskBand11
                 _settingsWindow.Activate();
             }
         }
+
+        public void Receive(SettingsChangedMessage message)
+        {
+            PropertyChanged?.Invoke(this, new(nameof(BandsDisplayOrder)));
+        }
+
+        //private void InitializeSettings()
+        //{
+        //    new SettingsData
+        //    {
+        //        //AutoStart = AutoStartToggle.IsOn,
+        //        //CheckForUpdates = UpdateCheckToggle.IsOn,
+        //        //Theme = ThemeComboBox.SelectedIndex,
+        //        TaskbarItemStates = Bands.ToDictionary(
+        //            item => item.Id,
+        //            item => new TaskbarItemState
+        //            {
+        //                IsEnabled = item.IsEnabled,
+        //            })
+        //    };
+        //}
     }
+    //#region Data Classes
+
+    ///// <summary>
+    ///// Data class to hold the current settings state.
+    ///// </summary>
+    //public class SettingsData
+    //{
+    //    //public bool AutoStart { get; set; }
+    //    //public bool CheckForUpdates { get; set; }
+    //    //public int Theme { get; set; }
+    //    public Dictionary<string, TaskbarItemState> TaskbarItemStates { get; set; } = new();
+    //}
+
+    ///// <summary>
+    ///// Data class to hold the state of a taskbar item.
+    ///// </summary>
+    //public class TaskbarItemState
+    //{
+    //    public bool IsEnabled { get; set; }
+    //    //public bool ShouldBeVisible { get; set; }
+    //}
+
+    //#endregion
 
 }
