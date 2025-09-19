@@ -38,6 +38,9 @@ public class ExtensionWrapper : IExtensionWrapper
         PackageFamilyName = appExtension.Package.Id.FamilyName;
         // ExtensionClassId = classId ?? throw new ArgumentNullException(nameof(classId));
         RelativePath = relativePath;
+
+        PublicFolder = appExtension.GetPublicFolder().Path;
+
         Publisher = appExtension.Package.PublisherDisplayName;
         InstalledDate = appExtension.Package.InstalledDate;
         Version = appExtension.Package.Id.Version;
@@ -55,6 +58,7 @@ public class ExtensionWrapper : IExtensionWrapper
 
     // public string ExtensionClassId { get; }
     public string RelativePath { get; }
+    public string PublicFolder { get; }
 
     public string Publisher { get; }
 
@@ -205,6 +209,14 @@ public class ExtensionWrapper : IExtensionWrapper
 
     public string GetRegistrationJson()
     {
-        return RelativePath;
+        // The RelativePath is relative to the PublicFolder specified in the manifest
+        // so we need to return the absolute path
+        string publicFolder = System.IO.Path.GetFullPath(PublicFolder);
+        string absolutePath = System.IO.Path.Combine(publicFolder, RelativePath);
+        // if (!System.IO.File.Exists(absolutePath))
+        // {
+        //     throw new System.IO.FileNotFoundException($"The registration.json file was not found at path: {absolutePath}");
+        // }
+        return absolutePath;
     }
 }
