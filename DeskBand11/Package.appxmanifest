@@ -68,10 +68,10 @@
               Name="com.zadjii.deskband" 
               DisplayName="..." 
               Id="asdf" 
-              PublicFolder="Assets"> 
+              PublicFolder="Public"> 
             <uap3:Properties> 
               <DeskbandProvider>
-                <Registration>path\to\registration.json</Registration> <!-- path relative to the PublicFolder above -->
+                <Registration>test_registration.json</Registration> <!-- path relative to the PublicFolder above -->
               </DeskbandProvider>
             </uap3:Properties> 
           </uap3:AppExtension> 

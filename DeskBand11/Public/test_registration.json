@@ -1,0 +1,27 @@
+{
+    "providerId": "com.zadjii.deskbandJson",
+    "deskbands": 
+    [
+        {
+            "id": "test-000",
+            "icon": "Assets\\StoreLogo.png",
+            "title": "Test Deskband",
+            "subtitle": "I came from JSON",
+            "buttons": 
+            [
+                {
+                    "id": "btn-001",
+                    "icon": "\uE701",
+                    "name": "Bing",
+                    "invokeUri": "https://www.bing.com"
+                },
+                {
+                    "id": "btn-002",
+                    "icon": "https://github.com/favicon.ico",
+                    "name": "Button 2 Tooltip",
+                    "invokeUri": "https://www.github.com"
+                }
+            ]
+        }
+    ]
+}

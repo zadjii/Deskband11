@@ -117,7 +117,22 @@ namespace DeskBand11
             foreach (IExtensionWrapper extension in extensions)
             {
                 string json = extension.GetRegistrationJson();
-                Debug.WriteLine(json);
+                if (File.Exists(json))
+                {
+                    List<TaskbarItemViewModel> items = await JsonDeskband.JsonDeskbandLoader.LoadFromFileAsync(json);
+
+                    this.DispatcherQueue.TryEnqueue(() =>
+                    {
+                        foreach (TaskbarItemViewModel item in items)
+                        {
+                            Bands.Add(item);
+                        }
+                    });
+                }
+                else
+                {
+                    Debug.WriteLine($"Could not find registration json at path: {json}");
+                }
             }
         }
     }

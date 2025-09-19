@@ -211,8 +211,7 @@ public class ExtensionWrapper : IExtensionWrapper
     {
         // The RelativePath is relative to the PublicFolder specified in the manifest
         // so we need to return the absolute path
-        string publicFolder = System.IO.Path.GetFullPath(PublicFolder);
-        string absolutePath = System.IO.Path.Combine(publicFolder, RelativePath);
+        string absolutePath = System.IO.Path.Combine(PublicFolder, RelativePath);
         // if (!System.IO.File.Exists(absolutePath))
         // {
         //     throw new System.IO.FileNotFoundException($"The registration.json file was not found at path: {absolutePath}");

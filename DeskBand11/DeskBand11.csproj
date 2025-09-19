@@ -24,6 +24,10 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Public\test_registration.json" />
+  </ItemGroup>
+  
   <PropertyGroup>
     <ApplicationIcon>Assets\Deskband.ico</ApplicationIcon>
   </PropertyGroup>
