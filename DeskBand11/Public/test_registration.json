@@ -4,7 +4,7 @@
     [
         {
             "id": "test-000",
-            "icon": "Assets\\StoreLogo.png",
+            "icon": "..\\Assets\\Deskband.png",
             "title": "Test Deskband",
             "subtitle": "I came from JSON",
             "buttons": 

@@ -18,7 +18,7 @@ public static class JsonDeskbandExample
 
         if (File.Exists(jsonPath))
         {
-            return await JsonDeskbandLoader.LoadFromFileAsync(jsonPath);
+            return await JsonDeskbandLoader.LoadFromFileAsync(jsonPath, string.Empty);
         }
 
         // Fallback: load from inline JSON if file doesn't exist
@@ -50,7 +50,7 @@ public static class JsonDeskbandExample
         }
         """;
 
-        return JsonDeskbandLoader.LoadFromJson(testJson);
+        return JsonDeskbandLoader.LoadFromJson(testJson, string.Empty);
     }
 
     /// <summary>

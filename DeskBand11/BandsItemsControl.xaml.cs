@@ -119,7 +119,7 @@ namespace DeskBand11
                 string json = extension.GetRegistrationJson();
                 if (File.Exists(json))
                 {
-                    List<TaskbarItemViewModel> items = await JsonDeskband.JsonDeskbandLoader.LoadFromFileAsync(json);
+                    List<TaskbarItemViewModel> items = await JsonDeskband.JsonDeskbandLoader.LoadFromFileAsync(json, extension.PublicFolder);
 
                     this.DispatcherQueue.TryEnqueue(() =>
                     {

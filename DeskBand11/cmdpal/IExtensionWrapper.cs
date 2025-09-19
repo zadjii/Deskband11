@@ -34,6 +34,8 @@ public interface IExtensionWrapper
     /// </summary>
     string Publisher { get; }
 
+    string PublicFolder { get; }
+
     // /// <summary>
     // /// Gets class id (GUID) of the extension class (which implements IExtension) as mentioned in the manifest
     // /// </summary>
