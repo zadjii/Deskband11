@@ -356,6 +356,7 @@ namespace DeskBand11
     }
 
     public record OpenSettingsMessage();
+    public record SettingsChangedMessage();
     public record QuitMessage();
     public record TaskbarRestartMessage();
 }

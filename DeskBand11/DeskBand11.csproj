@@ -24,6 +24,11 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Public\test_registration.json" />
+    <Content Include="Public\welcome.json" />
+  </ItemGroup>
+
   <PropertyGroup>
     <ApplicationIcon>Assets\Deskband.ico</ApplicationIcon>
   </PropertyGroup>
@@ -44,6 +49,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.WinUI.Converters" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.250402" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.250402" />
     <PackageReference Include="Microsoft.CommandPalette.Extensions" Version="0.5.250829002" />
     <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.205">
       <PrivateAssets>all</PrivateAssets>

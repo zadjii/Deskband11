@@ -12,6 +12,7 @@ namespace DeskBand11
 {
     public partial class HelloWorldTaskBand : TaskbarItemViewModel
     {
+        public override string Id => "builtin.HelloWorldTaskBand";
         public HelloWorldTaskBand()
         {
             Title = "Hello world";
@@ -19,6 +20,7 @@ namespace DeskBand11
     }
     public partial class ButtonsWithLabelsTaskBand : TaskbarItemViewModel
     {
+        public override string Id => "builtin.ButtonsWithLabelsTaskBand";
         public ButtonsWithLabelsTaskBand()
         {
             AnonymousCommand foo = new(() => { }) { Name = "Do nothing" };
@@ -30,6 +32,8 @@ namespace DeskBand11
 
     public partial class AudioBand : TaskbarItemViewModel, IDisposable
     {
+        public override string Id => "builtin.AudioBand";
+
         MediaService _service = new();
         private DispatcherQueue _queue = DispatcherQueue.GetForCurrentThread();
 

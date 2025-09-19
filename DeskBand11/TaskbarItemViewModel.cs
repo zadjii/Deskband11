@@ -77,8 +77,13 @@ namespace DeskBand11
         public bool HasSubtitle => !string.IsNullOrEmpty(Subtitle);
         public bool HasText => HasTitle || HasSubtitle;
 
+        // used just by the view to hide/show based on available space
         [ObservableProperty]
         public partial bool ShouldBeVisible { get; set; } = true;
+
+        // enabled/disabled in the settings
+        [ObservableProperty]
+        public partial bool IsEnabled { get; set; } = true;
     }
 
     public partial class CommandViewModel : ObservableObject, ICommand

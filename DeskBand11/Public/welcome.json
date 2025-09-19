@@ -1,0 +1,12 @@
+{
+    "providerId": "com.zadjii.deskband11.welcome_message",
+    "deskbands": 
+    [
+        {
+            "id": "welcome_message",
+            "icon": "..\\Assets\\Deskband.png",
+            "title": "Welcome to DeskBand11",
+            "subtitle": "Settings are on the tray icon"
+        }
+    ]
+}
