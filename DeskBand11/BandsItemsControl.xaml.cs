@@ -71,7 +71,7 @@ namespace DeskBand11
             Trace($"SetMaxAvailableWidth({availableSpace})");
 
             double neededSpace = 0.0;
-            foreach (TaskbarItemViewModel item in BandsDisplayOrder)
+            foreach (TaskbarItemViewModel item in Bands)
             {
                 if (ItemsBar.ContainerFromItem(item) is FrameworkElement fwe)
                 {
@@ -93,7 +93,7 @@ namespace DeskBand11
             {
                 Trace($"  all fit");
                 MoreButton.Visibility = Visibility.Collapsed;
-                foreach (TaskbarItemViewModel item in BandsDisplayOrder)
+                foreach (TaskbarItemViewModel item in Bands)
                 {
                     item.ShouldBeVisible = true;
                 }
@@ -105,7 +105,7 @@ namespace DeskBand11
 
                 double takenSpace = MoreButton.Width;
                 Trace($"    button: {takenSpace}");
-                foreach (TaskbarItemViewModel item in BandsDisplayOrder)
+                foreach (TaskbarItemViewModel item in Bands)
                 {
                     if (ItemsBar.ContainerFromItem(item) is FrameworkElement fwe)
                     {
