@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <Content Include="Public\test_registration.json" />
+    <Content Include="Public\welcome.json" />
   </ItemGroup>
 
   <PropertyGroup>

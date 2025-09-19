@@ -18,24 +18,12 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+
         <TitleBar Title="Deskband 11 Settings" Grid.Row="0">
             <TitleBar.IconSource>
                 <ImageIconSource ImageSource="ms-appx:Assets/Deskband.png" />
             </TitleBar.IconSource>
         </TitleBar>
-        <!--  Header  -->
-        <!--<Border Grid.Row="0" Padding="24,16">
-            <StackPanel>
-                <TextBlock
-                    Margin="0,0,0,8"
-                    Style="{ThemeResource TitleTextBlockStyle}"
-                    Text="DeskBand11 Settings" />
-                <TextBlock
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{ThemeResource BodyTextBlockStyle}"
-                    Text="Configure which taskbar items are visible and enabled" />
-            </StackPanel>
-        </Border>-->
 
         <!--  Settings Content  -->
         <ScrollViewer
