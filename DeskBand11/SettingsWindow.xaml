@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="DeskBand11.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:local="using:DeskBand11"
+    Title="DeskBand11 Settings">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  Header  -->
+        <Border
+            Grid.Row="0"
+            Padding="24,16"
+            Background="{ThemeResource SystemControlBackgroundAltHighBrush}">
+            <StackPanel>
+                <TextBlock
+                    Margin="0,0,0,8"
+                    Style="{ThemeResource TitleTextBlockStyle}"
+                    Text="DeskBand11 Settings" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    Text="Configure which taskbar items are visible and enabled" />
+            </StackPanel>
+        </Border>
+
+        <!--  Settings Content  -->
+        <ScrollViewer
+            Grid.Row="1"
+            Padding="24,16"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Margin="0,0,0,16"
+                    Style="{ThemeResource SubtitleTextBlockStyle}"
+                    Text="Taskbar Items" />
+
+                <ItemsControl x:Name="TaskbarItemsControl" ItemsSource="{x:Bind TaskbarItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="local:TaskbarItemViewModel">
+                            <controls:SettingsExpander
+                                Margin="0,0,0,8"
+                                Description="{x:Bind Subtitle, Mode=OneWay}"
+                                Header="{x:Bind Title, Mode=OneWay}"
+                                IsExpanded="False">
+
+                                <controls:SettingsExpander.HeaderIcon>
+                                    <FontIcon FontSize="16" Glyph="&#xE713;" />
+                                </controls:SettingsExpander.HeaderIcon>
+
+                                <!--  Toggle Switch for Enable/Disable  -->
+                                <ToggleSwitch
+                                    MinWidth="0"
+                                    IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
+                                    OffContent="Disabled"
+                                    OnContent="Enabled" />
+
+                                <!--  Expanded Content  -->
+                                <controls:SettingsExpander.Items>
+                                    <!--  Item Details  -->
+                                    <controls:SettingsCard Header="Item ID">
+                                        <TextBlock
+                                            FontFamily="Consolas"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            IsTextSelectionEnabled="True"
+                                            Text="{x:Bind Id}" />
+                                    </controls:SettingsCard>
+
+                                    <!--  Visibility Status  -->
+                                    <controls:SettingsCard Header="Currently Visible">
+                                        <TextBlock>
+                                            <Run Text="{x:Bind ShouldBeVisible, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </controls:SettingsCard>
+
+                                    <!--  Icon Status  -->
+                                    <controls:SettingsCard Header="Has Icon">
+                                        <TextBlock>
+                                            <Run Text="{x:Bind HasIcon, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </controls:SettingsCard>
+
+                                    <!--  Additional Actions  -->
+                                    <controls:SettingsCard Description="Additional configuration options" Header="Actions">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button
+                                                MinWidth="100"
+                                                Content="Configure"
+                                                IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                                                Style="{ThemeResource AccentButtonStyle}" />
+                                            <Button MinWidth="100" Content="Reset" />
+                                        </StackPanel>
+                                    </controls:SettingsCard>
+                                </controls:SettingsExpander.Items>
+                            </controls:SettingsExpander>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!--  Add separator and global settings  -->
+                <Border
+                    Height="1"
+                    Margin="0,24"
+                    Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                <!--  Global Settings  -->
+                <TextBlock
+                    Margin="0,0,0,16"
+                    Style="{ThemeResource SubtitleTextBlockStyle}"
+                    Text="Global Settings" />
+
+                <controls:SettingsExpander
+                    Description="Application-wide settings"
+                    Header="General Options"
+                    IsExpanded="False">
+                    <controls:SettingsExpander.HeaderIcon>
+                        <FontIcon FontSize="16" Glyph="&#xE115;" />
+                    </controls:SettingsExpander.HeaderIcon>
+
+                    <ToggleSwitch
+                        x:Name="AutoStartToggle"
+                        OffContent="Auto-start disabled"
+                        OnContent="Auto-start enabled" />
+
+                    <controls:SettingsExpander.Items>
+                        <controls:SettingsCard Description="Choose the application theme" Header="Theme">
+                            <ComboBox x:Name="ThemeComboBox" MinWidth="150">
+                                <ComboBoxItem Content="System default" />
+                                <ComboBoxItem Content="Light" />
+                                <ComboBoxItem Content="Dark" />
+                            </ComboBox>
+                        </controls:SettingsCard>
+
+                        <controls:SettingsCard Description="Automatically check for updates" Header="Update Check">
+                            <ToggleSwitch x:Name="UpdateCheckToggle" />
+                        </controls:SettingsCard>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!--  Footer with Action Buttons  -->
+        <Border
+            Grid.Row="2"
+            Padding="24,16"
+            Background="{ThemeResource SystemControlBackgroundAltMediumBrush}"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <StackPanel
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="12">
+                <Button
+                    x:Name="ResetAllButton"
+                    Click="ResetAllButton_Click"
+                    Content="Reset All" />
+                <Button
+                    x:Name="ApplyButton"
+                    Click="ApplyButton_Click"
+                    Content="Apply"
+                    Style="{ThemeResource AccentButtonStyle}" />
+                <Button
+                    x:Name="CloseButton"
+                    Click="CloseButton_Click"
+                    Content="Close" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

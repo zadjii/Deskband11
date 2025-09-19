@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.CmdPal.Common.Services;
 using Microsoft.CmdPal.UI.ViewModels.Models;
 using Microsoft.UI.Xaml;
@@ -13,12 +14,14 @@ namespace DeskBand11
     /// <summary>
     /// An empty window that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class BandsItemsControl : UserControl
+    public sealed partial class BandsItemsControl : UserControl,
+        IRecipient<OpenSettingsMessage>
     {
         public ObservableCollection<TaskbarItemViewModel> Bands { get; set; }
         public IEnumerable<TaskbarItemViewModel> BandsDisplayOrder => Bands.Reverse();
 
         private readonly ExtensionService _extensionService;
+        private SettingsWindow? _settingsWindow = null;
 
         public BandsItemsControl()
         {
@@ -35,6 +38,8 @@ namespace DeskBand11
 
             _extensionService = new();
             _ = Task.Run(InitializeExtensions);
+
+            WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
 
             InitializeComponent();
         }
@@ -133,6 +138,21 @@ namespace DeskBand11
                 {
                     Debug.WriteLine($"Could not find registration json at path: {json}");
                 }
+            }
+        }
+
+        public void Receive(OpenSettingsMessage message)
+        {
+            Debug.WriteLine("BandsItemsControl received OpenSettingsMessage");
+            if (_settingsWindow == null)
+            {
+                _settingsWindow = new SettingsWindow(this);
+                _settingsWindow.Closed += (s, e) => _settingsWindow = null;
+                _settingsWindow.Activate();
+            }
+            else
+            {
+                _settingsWindow.Activate();
             }
         }
     }
