@@ -64,14 +64,14 @@ namespace DeskBand11
 
             // Timer to re-layout based on available space in taskbar
             _updateTaskbarButtonsTimer = DispatcherQueue.CreateTimer();
-            _updateTaskbarButtonsTimer.Tick += (s, e) => ClipWindow(onlyIfButtonsChanged: true);
+            _updateTaskbarButtonsTimer.Tick += (s, e) => ClipWindow(onlyIfButtonsChanged: true).ConfigureAwait(false);
             _updateTaskbarButtonsTimer.Interval = TimeSpan.FromMilliseconds(500);
             _updateTaskbarButtonsTimer.Start();
 
             this.VisibilityChanged += MainWindow_VisibilityChanged;
             // this.ItemsBar.SizeChanged += ItemsBar_SizeChanged;
             //this.Root.SizeChanged += ItemsBar_SizeChanged;
-            this.MainContent.SizeChanged += ItemsBar_SizeChanged;
+            this.MainContent.SizeChanged += ItemsBar_SizeChangedAsync;
 
             WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
             WeakReferenceMessenger.Default.Register<TaskbarRestartMessage>(this);
@@ -98,11 +98,11 @@ namespace DeskBand11
 
         }
 
-        private void ItemsBar_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
+        private void ItemsBar_SizeChangedAsync(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
         {
             Debug.WriteLine($"Content size changed");
 
-            ClipWindow();
+            ClipWindow().ConfigureAwait(false);
         }
 
         private void MainWindow_VisibilityChanged(object sender, Microsoft.UI.Xaml.WindowVisibilityChangedEventArgs args)
@@ -213,13 +213,15 @@ namespace DeskBand11
                          newWindowRect.Height,
                          SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
 
-            ClipWindow();
+            ClipWindow().ConfigureAwait(false);
         }
 
 
         private bool UpdateTaskbarButtons()
         {
             _tasklist.Update();
+            float scaleFactor = (float)this.GetDpiForWindow() / 96.0f;
+
             List<TasklistButton> buttons = _tasklist.GetButtons();
             int maxRight = 0;
             int totalWidth = 0;
@@ -236,12 +238,20 @@ namespace DeskBand11
             }
             TaskbarButtons.Width = new GridLength(maxRight);
 
+            HWND taskBarHwnd = PInvoke.FindWindow("Shell_TrayWnd", null);
+            HWND notificationHwnd = PInvoke.FindWindowEx(taskBarHwnd, HWND.Null, "TrayNotifyWnd", null);
+            PInvoke.GetWindowRect(notificationHwnd, out RECT trayRect);
+
+            int notificationAreaInPixels = trayRect.Width;
+            float notificationAreaInDips = notificationAreaInPixels / scaleFactor;
+            TrayIcons.Width = new GridLength(notificationAreaInDips);
+
             double available = this.Bounds.Width; // Root.ActualWidth
 
             double taskbarReserverdInDips = WindowsLogo.Width.Value + maxRight; // WindowsLogo.Width.Value=60
-            double forContent = available - taskbarReserverdInDips - TrayIcons.Width.Value;
-            double reservedContent = WindowsLogo.ActualWidth + TaskbarButtons.ActualWidth /*+ Mid.ActualWidth*/ + TrayIcons.ActualWidth;
-            double forContent2 = available - reservedContent;
+            double forContent = available - taskbarReserverdInDips - notificationAreaInDips;
+            double reservedContent = WindowsLogo.ActualWidth + TaskbarButtons.ActualWidth /*+ Mid.ActualWidth*/ + notificationAreaInDips;
+            //double forContent2 = available - reservedContent;
 
             if (_lastContentSpace == forContent)
             {
@@ -253,9 +263,9 @@ namespace DeskBand11
             Debug.WriteLine($"maxRight: {maxRight}");
             Debug.WriteLine($"totalWidth: {totalWidth}");
             Debug.WriteLine($"[{available}]");
-            Debug.WriteLine($"[{WindowsLogo.ActualWidth}][{TaskbarButtons.ActualWidth}][{Mid.ActualWidth}][content={forContent}][{TrayIcons.ActualWidth}]");
+            Debug.WriteLine($"[{WindowsLogo.ActualWidth}][{TaskbarButtons.ActualWidth}][{Mid.ActualWidth}][content={forContent}][{notificationAreaInDips}]");
             Debug.WriteLine($"forContent: {forContent}");
-            Debug.WriteLine($"{forContent} =? {forContent2}");
+            //Debug.WriteLine($"{forContent} =? {forContent2}");
 
             if (forContent > 0)
             {
@@ -273,18 +283,18 @@ namespace DeskBand11
             return true;
         }
 
-        private void ClipWindow(bool onlyIfButtonsChanged = false)
+        private async Task ClipWindow(bool onlyIfButtonsChanged = false)
         {
             bool taskbarChanged = UpdateTaskbarButtons();
             if (onlyIfButtonsChanged && !taskbarChanged)
             {
                 return;
             }
-
+            await Task.Delay(100);
+            float scaleFactor = (float)this.GetDpiForWindow() / 96.0f;
             FrameworkElement clipToElement = MainContent;
             System.Numerics.Vector2 clipToSize = clipToElement.ActualSize;
             Windows.Foundation.Point position = clipToElement.TransformToVisual(this.Content).TransformPoint(new());
-            float scaleFactor = (float)this.GetDpiForWindow() / 96.0f;
             RECT scaledBounds = new()
             {
                 left = (int)(position.X * scaleFactor),
@@ -340,7 +350,7 @@ namespace DeskBand11
         public void Receive(QuitMessage message)
         {
             this.VisibilityChanged -= MainWindow_VisibilityChanged;
-            this.Root.SizeChanged -= ItemsBar_SizeChanged;
+            this.Root.SizeChanged -= ItemsBar_SizeChangedAsync;
 
             // Stop the debouncer to prevent any pending calls
             _updateLayoutDebouncer?.Stop();

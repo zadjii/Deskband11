@@ -52,7 +52,10 @@ public sealed partial class Tasklist : IDisposable
 {
     private IUIAutomation? _automation;
     private IUIAutomationElement? _element;
+    private IUIAutomationElement? _notificationAreaElement;
     private IUIAutomationCondition? _trueCondition;
+    private IUIAutomationCondition? _toolbarCondition;
+    private IUIAutomationCondition? _buttonCondition;
     private bool _disposed;
 
     /// <summary>
@@ -63,13 +66,13 @@ public sealed partial class Tasklist : IDisposable
         ThrowIfDisposed();
 
         // Get HWND of the tasklist by walking the window hierarchy
-        HWND tasklistHwnd = PInvoke.FindWindow("Shell_TrayWnd", null);
-        if (tasklistHwnd.IsNull)
+        HWND taskBarHwnd = PInvoke.FindWindow("Shell_TrayWnd", null);
+        if (taskBarHwnd.IsNull)
         {
             return;
         }
 
-        tasklistHwnd = PInvoke.FindWindowEx(tasklistHwnd, HWND.Null, "ReBarWindow32", null);
+        HWND tasklistHwnd = PInvoke.FindWindowEx(taskBarHwnd, HWND.Null, "ReBarWindow32", null);
         if (tasklistHwnd.IsNull)
         {
             return;
@@ -92,10 +95,22 @@ public sealed partial class Tasklist : IDisposable
         {
             _automation = (IUIAutomation)new CUIAutomation();
             _trueCondition = _automation.CreateTrueCondition();
+            _toolbarCondition = _automation.CreatePropertyCondition(
+                UIA_PROPERTY_ID.UIA_ControlTypePropertyId,
+                UIA_CONTROLTYPE_ID.UIA_ToolBarControlTypeId);
+            _buttonCondition = _automation.CreatePropertyCondition(
+                UIA_PROPERTY_ID.UIA_ControlTypePropertyId,
+                UIA_CONTROLTYPE_ID.UIA_ButtonControlTypeId);
         }
 
         // Get the automation element for the taskbar
         _element = _automation.ElementFromHandle(tasklistHwnd);
+        HWND notificationHwnd = PInvoke.FindWindowEx(taskBarHwnd, HWND.Null, "TrayNotifyWnd", null);
+        if (notificationHwnd.IsNull)
+        {
+            return;
+        }
+        _notificationAreaElement = _automation.ElementFromHandle(notificationHwnd);
     }
 
     /// <summary>
@@ -111,6 +126,31 @@ public sealed partial class Tasklist : IDisposable
         {
             return false;
         }
+
+        //try
+        //{
+        //    //IUIAutomationElementArray elements = _notificationAreaElement.FindAll(TreeScope.TreeScope_Descendants, _buttonCondition);
+        //    IUIAutomationElementArray elements = _element.FindAll(TreeScope.TreeScope_Children, _trueCondition);
+        //    int count = elements.Length;
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        IUIAutomationElement child = elements.GetElement(i);
+        //        object boundingRect = child.GetCurrentPropertyValue(UIA_PROPERTY_ID.UIA_BoundingRectanglePropertyId);
+        //        double[]? rectArray = boundingRect as double[];
+        //        string automationId = child.CurrentAutomationId.ToString() ?? string.Empty;
+        //        TasklistButton b = new()
+        //        {
+        //            Name = automationId,
+        //            X = (int)rectArray[0],
+        //            Y = (int)rectArray[1],
+        //            Width = (int)rectArray[2],
+        //            Height = (int)rectArray[3],
+        //            KeyNum = 0 // Will be assigned later
+        //        };
+        //        Debug.WriteLine($"{automationId}: {b.X},{b.Y},{b.Width}x{b.Height}");
+        //    }
+        //}
+        //catch { }
 
         try
         {
