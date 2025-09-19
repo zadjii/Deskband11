@@ -1,20 +1,21 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DeskBand11.JsonDeskband;
 using Microsoft.CommandPalette.Extensions.Toolkit;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using WinUIEx;
 
 namespace DeskBand11
 {
     /// <summary>
     /// Settings window for configuring DeskBand11 taskbar items and application settings.
     /// </summary>
-    public sealed partial class SettingsWindow : Window
+    public sealed partial class SettingsWindow : WindowEx
     {
         public ObservableCollection<TaskbarItemViewModel> TaskbarItems { get; }
 
@@ -36,26 +37,10 @@ namespace DeskBand11
 
         private void SetupWindow()
         {
-            // Get the window handle for this WinUI 3 window
-            //var windowHandle = WindowNative.GetWindowHandle(this);
-            //var windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            //var appWindow = AppWindow.GetFromWindowId(windowId);
-            AppWindow? appWindow = this.AppWindow;
-            // Set window icon if available
-            if (appWindow is not null)
-            {
-                appWindow.Title = "DeskBand11 Settings";
-
-                //// Center the window
-                //DisplayArea? displayArea = DisplayArea.Primary;
-                //if (displayArea is not null)
-                //{
-                //    int centerX = (displayArea.WorkArea.Width - 600) / 2;
-                //    int centerY = (displayArea.WorkArea.Height - 500) / 2;
-                //    appWindow.Move(new Windows.Graphics.PointInt32(centerX, centerY));
-                //    appWindow.MoveAndResize(new Windows.Graphics.RectInt32(centerX, centerY), 
-                //}
-            }
+            this.ExtendsContentIntoTitleBar = true;
+            this.Title = "DeskBand11 Settings";
+            this.CenterOnScreen();
+            this.SystemBackdrop = new MicaBackdrop();
         }
 
         // private void InitializeSettings()
