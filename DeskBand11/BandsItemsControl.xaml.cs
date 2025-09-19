@@ -1,3 +1,5 @@
+using Microsoft.CmdPal.Common.Services;
+using Microsoft.CmdPal.UI.ViewModels.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
@@ -16,6 +18,8 @@ namespace DeskBand11
         public ObservableCollection<TaskbarItemViewModel> Bands { get; set; }
         public IEnumerable<TaskbarItemViewModel> BandsDisplayOrder => Bands.Reverse();
 
+        private readonly ExtensionService _extensionService;
+
         public BandsItemsControl()
         {
             Bands = new ObservableCollection<TaskbarItemViewModel>();
@@ -28,6 +32,10 @@ namespace DeskBand11
 
             // This is the AudioBand recreation
             Bands.Add(new AudioBand());
+
+            _extensionService = new();
+            _ = Task.Run(InitializeExtensions);
+
             InitializeComponent();
         }
 
@@ -102,5 +110,16 @@ namespace DeskBand11
                 }
             }
         }
+
+        private async Task InitializeExtensions()
+        {
+            IEnumerable<IExtensionWrapper> extensions = await _extensionService.GetInstalledExtensionsAsync();
+            foreach (IExtensionWrapper extension in extensions)
+            {
+                string json = extension.GetRegistrationJson();
+                Debug.WriteLine(json);
+            }
+        }
     }
+
 }

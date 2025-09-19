@@ -3,9 +3,21 @@
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  xmlns:uap7="http://schemas.microsoft.com/appx/manifest/uap/windows10/7"
+  xmlns:uap17="http://schemas.microsoft.com/appx/manifest/uap/windows10/17"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+  xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
+  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap rescap">
+  xmlns:virtualization="http://schemas.microsoft.com/appx/manifest/virtualization/windows10"
+  IgnorableNamespaces="uap mp rescap uap3 uap17 desktop6 virtualization">
+
 
   <Identity
     Name="d19edc7d-bfdc-4fb4-b8db-e8bfe046d1bc"
@@ -42,6 +54,31 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
+
+      <Extensions>
+
+        <uap3:Extension Category="windows.appExtensionHost">
+          <uap3:AppExtensionHost>
+            <uap3:Name>com.zadjii.deskband</uap3:Name>
+          </uap3:AppExtensionHost>
+        </uap3:Extension>
+
+        <uap3:Extension Category="windows.appExtension"> 
+          <uap3:AppExtension 
+              Name="com.zadjii.deskband" 
+              DisplayName="..." 
+              Id="asdf" 
+              PublicFolder="Assets"> 
+            <uap3:Properties> 
+              <DeskbandProvider>
+                <Registration>path\to\registration.json</Registration> <!-- path relative to the PublicFolder above -->
+              </DeskbandProvider>
+            </uap3:Properties> 
+          </uap3:AppExtension> 
+        </uap3:Extension> 
+      
+      </Extensions>
+
     </Application>
   </Applications>
 
