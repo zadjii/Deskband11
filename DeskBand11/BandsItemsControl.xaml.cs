@@ -26,7 +26,7 @@ namespace DeskBand11
 
         private readonly ExtensionService _extensionService;
         private SettingsWindow? _settingsWindow = null;
-        //private SettingsData? _settingsData = null;
+        private DeskbandSettings? _settings = null;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -44,8 +44,7 @@ namespace DeskBand11
             Bands.Add(new AudioBand());
 
             _extensionService = new();
-            _ = Task.Run(InitializeExtensions);
-            //InitializeSettings();
+            _ = Task.Run(InitializeSettings);
 
             WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
             WeakReferenceMessenger.Default.Register<SettingsChangedMessage>(this);
@@ -126,6 +125,24 @@ namespace DeskBand11
             }
         }
 
+        private async Task InitializeSettings()
+        {
+            _settings = await SettingsWindow.LoadUserSettings();
+            if (_settings is not null)
+            {
+                foreach (DeskbandItemSettings item in _settings.Deskbands)
+                {
+                    TaskbarItemViewModel? band = Bands.FirstOrDefault(b => b.Id == item.Id);
+                    if (band is not null)
+                    {
+                        band.IsEnabled = item.IsEnabled;
+                    }
+                }
+            }
+
+            await InitializeExtensions();
+        }
+
         private async Task InitializeExtensions()
         {
             IEnumerable<IExtensionWrapper> extensions = await _extensionService.GetInstalledExtensionsAsync();
@@ -140,11 +157,20 @@ namespace DeskBand11
                     {
                         foreach (TaskbarItemViewModel item in items)
                         {
+                            if (_settings is not null)
+                            {
+                                if (_settings.Deskbands.FirstOrDefault(d => d.Id == item.Id) is DeskbandItemSettings existing)
+                                {
+                                    // Existing item, use saved setting
+                                    item.IsEnabled = existing.IsEnabled;
+                                }
+                                else
+                                {
+                                    // New item, enable by default
+                                    item.IsEnabled = true;
+                                }
+                            }
                             Bands.Add(item);
-                            //_settingsData?.TaskbarItemStates?.Add(item.Id, new TaskbarItemState
-                            //{
-                            //    IsEnabled = item.IsEnabled,
-                            //});
                         }
                     });
                 }
@@ -175,44 +201,6 @@ namespace DeskBand11
             PropertyChanged?.Invoke(this, new(nameof(BandsDisplayOrder)));
         }
 
-        //private void InitializeSettings()
-        //{
-        //    new SettingsData
-        //    {
-        //        //AutoStart = AutoStartToggle.IsOn,
-        //        //CheckForUpdates = UpdateCheckToggle.IsOn,
-        //        //Theme = ThemeComboBox.SelectedIndex,
-        //        TaskbarItemStates = Bands.ToDictionary(
-        //            item => item.Id,
-        //            item => new TaskbarItemState
-        //            {
-        //                IsEnabled = item.IsEnabled,
-        //            })
-        //    };
-        //}
     }
-    //#region Data Classes
-
-    ///// <summary>
-    ///// Data class to hold the current settings state.
-    ///// </summary>
-    //public class SettingsData
-    //{
-    //    //public bool AutoStart { get; set; }
-    //    //public bool CheckForUpdates { get; set; }
-    //    //public int Theme { get; set; }
-    //    public Dictionary<string, TaskbarItemState> TaskbarItemStates { get; set; } = new();
-    //}
-
-    ///// <summary>
-    ///// Data class to hold the state of a taskbar item.
-    ///// </summary>
-    //public class TaskbarItemState
-    //{
-    //    public bool IsEnabled { get; set; }
-    //    //public bool ShouldBeVisible { get; set; }
-    //}
-
-    //#endregion
 
 }

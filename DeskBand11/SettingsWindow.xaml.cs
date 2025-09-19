@@ -1,9 +1,13 @@
 using CommunityToolkit.Mvvm.Messaging;
+using DeskBand11.JsonDeskband;
+using Microsoft.CommandPalette.Extensions.Toolkit;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DeskBand11
 {
@@ -26,8 +30,8 @@ namespace DeskBand11
             // Set up window properties
             SetupWindow();
 
-            // Initialize UI state
-            InitializeSettings();
+            // // Initialize UI state
+            // InitializeSettings();
         }
 
         private void SetupWindow()
@@ -54,28 +58,68 @@ namespace DeskBand11
             }
         }
 
-        private void InitializeSettings()
+        // private void InitializeSettings()
+        // {
+        //     try
+        //     {
+        //         // Load saved settings if available
+        //         _ = LoadUserSettings();
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Debug.WriteLine($"Error initializing settings: {ex.Message}");
+        //     }
+        // }
+
+        public static async Task<DeskbandSettings> LoadUserSettings()
         {
             try
             {
-                // Load saved settings if available
-                LoadUserSettings();
+                string appData = Utilities.BaseSettingsPath("DeskBand11");
+                string settingsPath = System.IO.Path.Combine(appData, "deskbandsettings.json");
+                if (File.Exists(settingsPath))
+                {
+                    string json = await File.ReadAllTextAsync(settingsPath);
+                    DeskbandSettings? settings = JsonSerializer.Deserialize<DeskbandSettings>(json, JsonDeskbandSourceGenerationContext.Default.DeskbandSettings);
+                    if (settings is not null)
+                    {
+                        // // Apply loaded settings to taskbar items
+                        // foreach (DeskbandItemSettings itemSettings in settings.Deskbands)
+                        // {
+                        //     TaskbarItems.FirstOrDefault(b => b.Id == itemSettings.Id)?.SetEnabled(itemSettings.Enabled);
+                        // }
+                        return settings;
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error initializing settings: {ex.Message}");
+                Debug.WriteLine($"Error loading user settings: {ex.Message}");
+                //ShowErrorDialog("Failed to load settings", ex.Message);
             }
+
+            return new DeskbandSettings();
         }
 
-        private void LoadUserSettings()
-        {
-            // TODO: Implement loading user settings from storage
-        }
-
-        private void SaveUserSettings()
+        private async Task SaveUserSettings()
         {
             try
             {
+                DeskbandSettings settings = new();
+                foreach (TaskbarItemViewModel band in TaskbarItems)
+                {
+                    if (!band.IsEnabled)
+                    {
+                        settings.Deskbands.Add(new DeskbandItemSettings() { Id = band.Id, IsEnabled = band.IsEnabled });
+                    }
+                }
+
+                string json = JsonSerializer.Serialize(settings, JsonDeskbandSourceGenerationContext.Default.DeskbandSettings);
+                string appData = Utilities.BaseSettingsPath("DeskBand11");
+                string settingsPath = System.IO.Path.Combine(appData, "deskbandsettings.json");
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(settingsPath)!);
+                await File.WriteAllTextAsync(settingsPath, json);
+
                 // TODO: Implement saving user settings to storage
                 Debug.WriteLine("Settings saved successfully");
             }
@@ -179,4 +223,22 @@ namespace DeskBand11
         #endregion
     }
 
+    #region Data Classes
+
+    public class DeskbandItemSettings
+    {
+        [JsonPropertyName("id")]
+        public required string Id { get; set; }
+
+        [JsonPropertyName("enabled")]
+        public bool IsEnabled { get; set; } = true;
+    }
+
+    public class DeskbandSettings
+    {
+        [JsonPropertyName("deskbands")]
+        public List<DeskbandItemSettings> Deskbands { get; set; } = new();
+    }
+
+    #endregion
 }

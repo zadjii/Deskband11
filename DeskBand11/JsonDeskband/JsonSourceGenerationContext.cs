@@ -9,8 +9,11 @@ namespace DeskBand11.JsonDeskband;
 [JsonSerializable(typeof(JsonDeskbandProvider))]
 [JsonSerializable(typeof(JsonDeskband))]
 [JsonSerializable(typeof(JsonButton))]
+[JsonSerializable(typeof(DeskbandItemSettings))]
+[JsonSerializable(typeof(DeskbandSettings))]
 [JsonSerializable(typeof(List<JsonDeskband>))]
 [JsonSerializable(typeof(List<JsonButton>))]
+[JsonSerializable(typeof(List<DeskbandItemSettings>))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = true,
