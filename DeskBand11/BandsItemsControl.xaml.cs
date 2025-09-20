@@ -70,6 +70,17 @@ namespace DeskBand11
         {
             Trace($"SetMaxAvailableWidth({availableSpace})");
 
+            if (availableSpace <= 0)
+            {
+                // fast pass
+                MoreButton.Visibility = Visibility.Collapsed;
+                foreach (TaskbarItemViewModel item in Bands)
+                {
+                    item.ShouldBeVisible = false;
+                }
+                return;
+            }
+
             double neededSpace = 0.0;
             foreach (TaskbarItemViewModel item in Bands)
             {

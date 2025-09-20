@@ -28,8 +28,8 @@ namespace DeskBand11
         private readonly uint WM_TASKBAR_RESTART;
         private readonly HWND _hwnd;
         private readonly TrayIconService _trayIconService = new();
-        private AppWindow _appWindow;
-        private Tasklist _tasklist;
+        private readonly AppWindow _appWindow;
+        private readonly Tasklist _tasklist;
 
         // Constants for Windows messages related to display changes
         private const int WM_DISPLAYCHANGE = 0x007E;
@@ -37,8 +37,8 @@ namespace DeskBand11
         private const int WM_DESTROY = 0x0002;
 
         // Store the original WndProc
-        private WNDPROC? _originalWndProc;
-        private WNDPROC? _hotkeyWndProc;
+        private readonly WNDPROC? _originalWndProc;
+        private readonly WNDPROC? _hotkeyWndProc;
 
         // Debouncer to throttle UpdateLayoutForDPI calls
         private readonly DispatcherQueueTimer _updateLayoutDebouncer;
@@ -46,7 +46,7 @@ namespace DeskBand11
 
         private double _lastContentSpace = 0;
 
-        private BandsItemsControl? _bandsControl;
+        private readonly BandsItemsControl? _bandsControl;
 
         public MainWindow()
         {
@@ -220,23 +220,24 @@ namespace DeskBand11
         private bool UpdateTaskbarButtons()
         {
             _tasklist.Update();
-            float scaleFactor = (float)this.GetDpiForWindow() / 96.0f;
+            float scaleFactor = this.GetDpiForWindow() / 96.0f;
 
             List<TasklistButton> buttons = _tasklist.GetButtons();
-            int maxRight = 0;
+            int maxRightInPixels = 0;
             int totalWidth = 0;
             string lastButton = string.Empty;
             foreach (TasklistButton button in buttons)
             {
                 totalWidth += button.Width;
                 int right = button.X + button.Width;
-                if (right > maxRight)
+                if (right > maxRightInPixels)
                 {
-                    maxRight = right;
+                    maxRightInPixels = right;
                     lastButton = button.Name;
                 }
             }
-            TaskbarButtons.Width = new GridLength(maxRight);
+            float maxRightDips = maxRightInPixels / scaleFactor;
+            TaskbarButtons.Width = new GridLength(maxRightDips);
 
             HWND taskBarHwnd = PInvoke.FindWindow("Shell_TrayWnd", null);
             HWND notificationHwnd = PInvoke.FindWindowEx(taskBarHwnd, HWND.Null, "TrayNotifyWnd", null);
@@ -248,7 +249,7 @@ namespace DeskBand11
 
             double available = this.Bounds.Width; // Root.ActualWidth
 
-            double taskbarReserverdInDips = WindowsLogo.Width.Value + maxRight; // WindowsLogo.Width.Value=60
+            double taskbarReserverdInDips = WindowsLogo.Width.Value + maxRightDips; // WindowsLogo.Width.Value=60
             double forContent = available - taskbarReserverdInDips - notificationAreaInDips;
             double reservedContent = WindowsLogo.ActualWidth + TaskbarButtons.ActualWidth /*+ Mid.ActualWidth*/ + notificationAreaInDips;
             //double forContent2 = available - reservedContent;
@@ -260,7 +261,7 @@ namespace DeskBand11
             }
 
             Debug.WriteLine($"lastButton: {lastButton}");
-            Debug.WriteLine($"maxRight: {maxRight}");
+            Debug.WriteLine($"maxRight: {maxRightDips}");
             Debug.WriteLine($"totalWidth: {totalWidth}");
             Debug.WriteLine($"[{available}]");
             Debug.WriteLine($"[{WindowsLogo.ActualWidth}][{TaskbarButtons.ActualWidth}][{Mid.ActualWidth}][content={forContent}][{notificationAreaInDips}]");
@@ -291,7 +292,7 @@ namespace DeskBand11
                 return;
             }
             await Task.Delay(100);
-            float scaleFactor = (float)this.GetDpiForWindow() / 96.0f;
+            float scaleFactor = this.GetDpiForWindow() / 96.0f;
             FrameworkElement clipToElement = MainContent;
             System.Numerics.Vector2 clipToSize = clipToElement.ActualSize;
             Windows.Foundation.Point position = clipToElement.TransformToVisual(this.Content).TransformPoint(new());
