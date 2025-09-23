@@ -42,6 +42,7 @@ namespace DeskBand11
 
             // This is the AudioBand recreation
             Bands.Add(new AudioBand());
+            Bands.Add(new MenuItemsBand());
 
             _extensionService = new();
             _ = Task.Run(InitializeSettings);
