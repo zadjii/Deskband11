@@ -91,6 +91,9 @@
                         <StackPanel Orientation="Horizontal" Spacing="4" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerTransitions>
+                    <TransitionCollection />
+                </ItemsControl.ItemContainerTransitions>
             </ItemsControl>
         </StackPanel>
     </Grid>
