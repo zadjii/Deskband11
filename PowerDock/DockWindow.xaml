@@ -58,7 +58,8 @@
                         <Button
                             Padding="2"
                             Background="Transparent"
-                            BorderBrush="Transparent">
+                            BorderBrush="Transparent"
+                            ToolTipService.ToolTip="{x:Bind Title, Mode=OneWay}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <cpcontrols:IconBox
                                     x:Name="IconBorder"
@@ -70,9 +71,10 @@
                                     SourceKey="{x:Bind Icon, Mode=OneWay}"
                                     SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
                                 <TextBlock
-                                    MaxWidth="200"
+                                    FontSize="10"
+                                    MaxWidth="100"
                                     Text="{x:Bind Title, Mode=OneWay}"
-                                    TextTrimming="WordEllipsis" />
+                                    TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                         </Button>
                     </DataTemplate>

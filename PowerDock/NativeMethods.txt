@@ -88,3 +88,15 @@ IUIAutomation
 IUIAutomationElement
 IUIAutomationCondition
 UIA_PROPERTY_ID
+
+MoveWindow
+GetSystemMetrics
+SHAppBarMessage
+ABM_NEW
+ABM_QUERYPOS
+ABM_SETPOS
+ABM_REMOVE
+APPBARDATA
+APPBARMESSAGE
+SYSTEM_METRICS_INDEX
+ABE
