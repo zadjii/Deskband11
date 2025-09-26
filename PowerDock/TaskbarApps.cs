@@ -1,6 +1,7 @@
 ﻿using Microsoft.CommandPalette.Extensions.Toolkit;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Windows.Storage.Streams;
@@ -26,13 +27,14 @@ namespace PowerDock
                         if (!string.IsNullOrWhiteSpace(title))
                         {
                             nint icon = GetWindowIcon(hWnd);
-                            IRandomAccessStreamReference? iconStreamRef = icon != IntPtr.Zero ? ConvertIconToStreamReference(icon) : null;
-
+                            IRandomAccessStream? iconStream = icon != IntPtr.Zero ? ConvertIconToStream(icon) : null;
+                            // Clean up the unmanaged handle without risking a use-after-free.
+                            Windows.Win32.PInvoke.DestroyIcon((Windows.Win32.UI.WindowsAndMessaging.HICON)icon);
                             windows.Add(new TaskbarApp
                             {
                                 hWnd = hWnd,
                                 Title = title,
-                                IconStreamRef = iconStreamRef
+                                IconStream = iconStream
                             });
                         }
                     }
@@ -67,15 +69,25 @@ namespace PowerDock
             return hIcon;
         }
 
-        private static IRandomAccessStreamReference? ConvertIconToStreamReference(IntPtr hIcon)
+        private static IRandomAccessStream? ConvertIconToStream(IntPtr hIcon)
         {
-            //using (var icon = System.Drawing.Icon.FromHandle(hIcon))
-            //using (var ms = new MemoryStream())
-            //{
-            //    icon.ToBitmap().Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            //    var buffer = ms.ToArray().AsBuffer();
-            //    return RandomAccessStreamReference.CreateFromStream(new InMemoryRandomAccessStream().WriteBuffer(buffer));
-            //}
+            using (System.Drawing.Icon icon = System.Drawing.Icon.FromHandle(hIcon))
+            using (MemoryStream memoryStream = new())
+            {
+                icon.ToBitmap().Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+                memoryStream.Position = 0;
+                byte[] buffer = memoryStream.ToArray();
+                InMemoryRandomAccessStream stream = new();
+                using IOutputStream outputStream = stream.GetOutputStreamAt(0);
+                using (DataWriter dataWriter = new(outputStream))
+                {
+                    dataWriter.WriteBytes(buffer);
+                    dataWriter.StoreAsync().Wait();
+                    dataWriter.FlushAsync().Wait();
+                }
+
+                return stream;
+            }
             return null;
         }
 
@@ -116,18 +128,12 @@ namespace PowerDock
     {
         public IntPtr hWnd;
         public required string Title;
-        public IRandomAccessStreamReference? IconStreamRef;
+        public IRandomAccessStream? IconStream;
         public IconInfo Icon
         {
             get
             {
-                if (IconStreamRef is null)
-                {
-                    return new(string.Empty);
-                }
-
-                IconData iconData = new(IconStreamRef);
-                return new IconInfo(iconData, iconData);
+                return IconStream is null ? new(string.Empty) : IconInfo.FromStream(IconStream);
             }
         }
     }
