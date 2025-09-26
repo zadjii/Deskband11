@@ -1,6 +1,8 @@
 ﻿using Microsoft.CommandPalette.Extensions.Toolkit;
+using Microsoft.UI.Dispatching;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -136,5 +138,86 @@ namespace PowerDock
                 return IconStream is null ? new(string.Empty) : IconInfo.FromStream(IconStream);
             }
         }
+    }
+
+    public class MainViewModel : IDisposable
+    {
+        public ObservableCollection<TaskbarApp> Apps { get; } = new();
+
+        private WinEventDelegate? _hookProc;
+        private IntPtr _hookHandle = IntPtr.Zero;
+
+        private DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        public MainViewModel()
+        {
+            Refresh();
+
+            // install window event hook
+            _hookProc = new WinEventDelegate(WinEventCallback);
+            _hookHandle = SetWinEventHook(
+                EVENT_OBJECT_CREATE,
+                EVENT_OBJECT_HIDE,
+                IntPtr.Zero,
+                _hookProc,
+                0, 0,
+                WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+        }
+
+        public void Dispose()
+        {
+            if (_hookHandle != IntPtr.Zero)
+            {
+                UnhookWinEvent(_hookHandle);
+                _hookHandle = IntPtr.Zero;
+            }
+        }
+
+        public void Refresh()
+        {
+            Apps.Clear();
+            List<TaskbarApp> windows = TaskbarApps.GetTaskbarWindows();
+            foreach (TaskbarApp app in windows)
+            {
+                Apps.Add(app);
+            }
+        }
+
+        private void WinEventCallback(IntPtr hWinEventHook, uint eventType,
+            IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+        {
+            if (idObject != OBJID_WINDOW || hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            // For simplicity: refresh entire list on any relevant event
+            dispatcherQueue.TryEnqueue(() => Refresh());
+        }
+
+        // --- WinEvent hooks ---
+        private delegate void WinEventDelegate(
+            IntPtr hWinEventHook, uint eventType,
+            IntPtr hwnd, int idObject, int idChild,
+            uint dwEventThread, uint dwmsEventTime);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWinEventHook(
+            uint eventMin, uint eventMax, IntPtr hmodWinEventProc,
+            WinEventDelegate lpfnWinEventProc, uint idProcess,
+            uint idThread, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
+        private const uint EVENT_OBJECT_CREATE = 0x8000;
+        private const uint EVENT_OBJECT_DESTROY = 0x8001;
+        private const uint EVENT_OBJECT_SHOW = 0x8002;
+        private const uint EVENT_OBJECT_HIDE = 0x8003;
+
+        private const uint WINEVENT_OUTOFCONTEXT = 0x0000;
+        private const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
+
+        private const int OBJID_WINDOW = 0;
     }
 }

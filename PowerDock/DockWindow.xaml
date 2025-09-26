@@ -26,9 +26,9 @@
             Grid.Row="0"
             Orientation="Horizontal"
             Spacing="2">
-            <Button Padding="2" Tapped="Button_Tapped">
+            <!--<Button Padding="2" Tapped="Button_Tapped">
                 <FontIcon FontSize="10" Glyph="&#xE149;" />
-            </Button>
+            </Button>-->
             <!--<ListView Grid.Row="1" ItemsSource="{x:Bind TaskbarItems, Mode=OneWay}">
 
             <ListView.ItemTemplate>
@@ -52,7 +52,7 @@
 
             </ListView.ItemTemplate>
         </ListView>-->
-            <ItemsControl HorizontalAlignment="Left" ItemsSource="{x:Bind TaskbarItems, Mode=OneWay}">
+            <ItemsControl HorizontalAlignment="Left" ItemsSource="{x:Bind ViewModel.Apps, Mode=OneWay}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="local:TaskbarApp">
                         <Button
@@ -71,8 +71,8 @@
                                     SourceKey="{x:Bind Icon, Mode=OneWay}"
                                     SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
                                 <TextBlock
-                                    FontSize="10"
                                     MaxWidth="100"
+                                    FontSize="10"
                                     Text="{x:Bind Title, Mode=OneWay}"
                                     TextTrimming="CharacterEllipsis" />
                             </StackPanel>

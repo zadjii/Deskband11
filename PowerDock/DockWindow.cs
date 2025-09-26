@@ -1,7 +1,5 @@
-using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -19,13 +17,16 @@ namespace PowerDock
     /// </summary>
     public sealed partial class DockWindow : Window
     {
-        ObservableCollection<TaskbarApp> TaskbarItems { get; set; } = new ObservableCollection<TaskbarApp>();
+        //ObservableCollection<TaskbarApp> TaskbarItems { get; set; } = new ObservableCollection<TaskbarApp>();
 
         private HWND _hwnd = HWND.Null;
         private uint _callbackMessageId;
+        private MainViewModel ViewModel;
 
         public DockWindow()
         {
+            ViewModel = new MainViewModel();
+
             InitializeComponent();
 
             ExtendsContentIntoTitleBar = true;
@@ -103,20 +104,20 @@ namespace PowerDock
         //    base.OnClosed(args);
         //}
 
-        [RelayCommand]
-        void PressButton()
-        {
-            System.Collections.Generic.List<TaskbarApp> items = TaskbarApps.GetTaskbarWindows();
-            TaskbarItems.Clear();
-            foreach (TaskbarApp item in items)
-            {
-                TaskbarItems.Add(item);
-            }
-        }
+        //[RelayCommand]
+        //void PressButton()
+        //{
+        //    System.Collections.Generic.List<TaskbarApp> items = TaskbarApps.GetTaskbarWindows();
+        //    TaskbarItems.Clear();
+        //    foreach (TaskbarApp item in items)
+        //    {
+        //        TaskbarItems.Add(item);
+        //    }
+        //}
 
-        private void Button_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
-        {
-            PressButton();
-        }
+        //private void Button_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+        //{
+        //    PressButton();
+        //}
     }
 }
