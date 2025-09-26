@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="PowerDock.DockWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cpcontrols="using:Microsoft.CmdPal.UI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:help="using:Microsoft.CmdPal.UI.Helpers"
+    xmlns:local="using:PowerDock"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="PowerDock"
+    mc:Ignorable="d">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <StackPanel Orientation="Vertical">
+        <Button Tapped="Button_Tapped">
+            <TextBlock>Get windows</TextBlock>
+        </Button>
+        <ListView ItemsSource="{x:Bind TaskbarItems, Mode=OneWay}">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="local:TaskbarApp">
+                    <StackPanel Orientation="Horizontal">
+                        <cpcontrols:IconBox
+                            x:Name="IconBorder"
+                            Width="16"
+                            Height="16"
+                            VerticalAlignment="Center"
+                            AutomationProperties.AccessibilityView="Raw"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            SourceKey="{x:Bind Icon, Mode=OneWay}"
+                            SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
+                        <TextBlock Text="{x:Bind Title, Mode=OneWay}" />
+                    </StackPanel>
+                </DataTemplate>
+
+            </ListView.ItemTemplate>
+        </ListView>
+        <Button>
+            <Grid>
+                <TextBlock>Foo</TextBlock>
+            </Grid>
+        </Button>
+    </StackPanel>
+</Window>

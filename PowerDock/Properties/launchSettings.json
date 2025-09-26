@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PowerDock (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "PowerDock (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
