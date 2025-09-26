@@ -20,10 +20,13 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel
-            Grid.Row="0"
-            Orientation="Horizontal"
-            Spacing="2">
+        <ScrollViewer
+            HorizontalAlignment="Stretch"
+            HorizontalScrollBarVisibility="Hidden"
+            HorizontalScrollMode="Enabled"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Disabled">
+
             <!--<Button Padding="2" Tapped="Button_Tapped">
                 <FontIcon FontSize="10" Glyph="&#xE149;" />
             </Button>-->
@@ -50,8 +53,8 @@
 
             </ListView.ItemTemplate>
         </ListView>-->
-            <ItemsControl HorizontalAlignment="Left" ItemsSource="{x:Bind ViewModel.Apps, Mode=OneWay}">
-                <ItemsControl.ItemTemplate>
+            <ItemsRepeater HorizontalAlignment="Left" ItemsSource="{x:Bind ViewModel.Apps, Mode=OneWay}">
+                <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="local:TaskbarApp">
                         <Button
                             Padding="2"
@@ -78,22 +81,21 @@
                         </Button>
                     </DataTemplate>
 
-                </ItemsControl.ItemTemplate>
-                <ItemsControl.ItemsPanel>
+                </ItemsRepeater.ItemTemplate>
+                <!--<ItemsRepeater.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <!--<toolkit:WrapPanel
-                            MinWidth="0"
-                            Padding="0"
-                            HorizontalSpacing="4"
-                            Orientation="Horizontal"
-                            VerticalSpacing="4" />-->
                         <StackPanel Orientation="Horizontal" Spacing="4" />
                     </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemContainerTransitions>
+                </ItemsRepeater.ItemsPanel>-->
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Horizontal" Spacing="4" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.Transitions>
                     <TransitionCollection />
-                </ItemsControl.ItemContainerTransitions>
-            </ItemsControl>
-        </StackPanel>
+
+                </ItemsRepeater.Transitions>
+            </ItemsRepeater>
+
+        </ScrollViewer>
     </Grid>
 </Window>
