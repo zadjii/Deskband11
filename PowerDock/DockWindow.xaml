@@ -8,6 +8,7 @@
     xmlns:help="using:Microsoft.CmdPal.UI.Helpers"
     xmlns:local="using:PowerDock"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
     Title="PowerDock"
     mc:Ignorable="d">
 
@@ -15,14 +16,24 @@
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <StackPanel Orientation="Vertical">
-        <Button Tapped="Button_Tapped">
-            <TextBlock>Get windows</TextBlock>
-        </Button>
-        <ListView ItemsSource="{x:Bind TaskbarItems, Mode=OneWay}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel
+            Grid.Row="0"
+            Orientation="Horizontal"
+            Spacing="2">
+            <Button Padding="2" Tapped="Button_Tapped">
+                <FontIcon FontSize="10" Glyph="&#xE149;" />
+            </Button>
+            <!--<ListView Grid.Row="1" ItemsSource="{x:Bind TaskbarItems, Mode=OneWay}">
+
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="local:TaskbarApp">
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
                         <cpcontrols:IconBox
                             x:Name="IconBorder"
                             Width="16"
@@ -32,16 +43,53 @@
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             SourceKey="{x:Bind Icon, Mode=OneWay}"
                             SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
-                        <TextBlock Text="{x:Bind Title, Mode=OneWay}" />
+                        <TextBlock
+                            MaxWidth="200"
+                            Text="{x:Bind Title, Mode=OneWay}"
+                            TextTrimming="WordEllipsis" />
                     </StackPanel>
                 </DataTemplate>
 
             </ListView.ItemTemplate>
-        </ListView>
-        <Button>
-            <Grid>
-                <TextBlock>Foo</TextBlock>
-            </Grid>
-        </Button>
-    </StackPanel>
+        </ListView>-->
+            <ItemsControl HorizontalAlignment="Left" ItemsSource="{x:Bind TaskbarItems, Mode=OneWay}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="local:TaskbarApp">
+                        <Button
+                            Padding="2"
+                            Background="Transparent"
+                            BorderBrush="Transparent">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <cpcontrols:IconBox
+                                    x:Name="IconBorder"
+                                    Width="16"
+                                    Height="16"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.AccessibilityView="Raw"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    SourceKey="{x:Bind Icon, Mode=OneWay}"
+                                    SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
+                                <TextBlock
+                                    MaxWidth="200"
+                                    Text="{x:Bind Title, Mode=OneWay}"
+                                    TextTrimming="WordEllipsis" />
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!--<toolkit:WrapPanel
+                            MinWidth="0"
+                            Padding="0"
+                            HorizontalSpacing="4"
+                            Orientation="Horizontal"
+                            VerticalSpacing="4" />-->
+                        <StackPanel Orientation="Horizontal" Spacing="4" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </StackPanel>
+    </Grid>
 </Window>
