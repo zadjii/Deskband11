@@ -207,35 +207,82 @@ namespace PowerDock
         private static bool IsTaskbarCandidate(IntPtr hWnd, out TaskbarApp app)
         {
             app = null!;
-            if (!IsWindowVisible(hWnd) || GetWindow(hWnd, GW_OWNER) != IntPtr.Zero)
+            //if (!IsWindowVisible(hWnd) || GetWindow(hWnd, GW_OWNER) != IntPtr.Zero)
+            //{
+            //    return false;
+            //}
+
+            //long exStyle = GetWindowLongPtr(hWnd, GWL_EXSTYLE).ToInt64();
+            //if ((exStyle & WS_EX_TOOLWINDOW) == WS_EX_TOOLWINDOW)
+            //{
+            //    return false;
+            //}
+
+            //StringBuilder sb = new(1024);
+            //GetWindowText(hWnd, sb, sb.Capacity);
+            //string title = sb.ToString();
+            //if (string.IsNullOrWhiteSpace(title))
+            //{
+            //    return false;
+            //}
+            if (IsTaskbarEligibleWindow(hWnd, out string? title))
+            {
+                nint hIcon = GetWindowIcon(hWnd);
+                IRandomAccessStream? iconStream = hIcon != IntPtr.Zero ? ConvertIconToStream(hIcon) : null;
+
+                app = new TaskbarApp
+                {
+                    hWnd = hWnd,
+                    Title = title,
+                    IconStream = iconStream
+                };
+                return true;
+
+            }
+            return false;
+        }
+        private static bool IsTaskbarEligibleWindow(IntPtr hWnd, out string title)
+        {
+            title = string.Empty;
+            if (!IsWindowVisible(hWnd))
             {
                 return false;
             }
 
+            //// Skip cloaked windows (like Windows Input Experience, background XAML hosts)
+            //if (IsCloaked(hWnd))
+            //{
+            //    return false;
+            //}
+
+            // Skip windows with owners (tool or child windows)
+            if (GetWindow(hWnd, GW_OWNER) != IntPtr.Zero)
+            {
+                return false;
+            }
+
+            // Skip tool windows
             long exStyle = GetWindowLongPtr(hWnd, GWL_EXSTYLE).ToInt64();
-            if ((exStyle & WS_EX_TOOLWINDOW) == WS_EX_TOOLWINDOW)
+            if ((exStyle & WS_EX_TOOLWINDOW) != 0)
             {
                 return false;
             }
 
+            long style = GetWindowLongPtr(hWnd, GWL_STYLE).ToInt64();
+            if ((style & WS_POPUP) != 0)
+            {
+                return false;
+            }
+            // Must have a title
             StringBuilder sb = new(1024);
             GetWindowText(hWnd, sb, sb.Capacity);
-            string title = sb.ToString();
-            if (string.IsNullOrWhiteSpace(title))
-            {
-                return false;
-            }
+            title = sb.ToString();
+            return !string.IsNullOrWhiteSpace(title);
+        }
 
-            nint hIcon = GetWindowIcon(hWnd);
-            IRandomAccessStream? iconStream = hIcon != IntPtr.Zero ? ConvertIconToStream(hIcon) : null;
-
-            app = new TaskbarApp
-            {
-                hWnd = hWnd,
-                Title = title,
-                IconStream = iconStream
-            };
-            return true;
+        private static bool IsCloaked(IntPtr hWnd)
+        {
+            return DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, out int cloakedVal, sizeof(int)) == 0 ? cloakedVal != 0 : false;
         }
 
         // --- WinEvent hooks ---
@@ -327,8 +374,10 @@ namespace PowerDock
 
         [DllImport("user32.dll", SetLastError = true, EntryPoint = "GetWindowLongPtr")]
         private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+        private const int GWL_STYLE = -16;
         private const int GWL_EXSTYLE = -20;
         private const long WS_EX_TOOLWINDOW = 0x00000080L;
+        private const long WS_POPUP = 0x80000000L;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam, IntPtr lParam);
@@ -339,5 +388,14 @@ namespace PowerDock
         [DllImport("user32.dll", EntryPoint = "GetClassLongPtr", SetLastError = true)]
         private static extern IntPtr GetClassLongPtr(IntPtr hWnd, int nIndex);
         private const int GCL_HICONSM = -34;
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmGetWindowAttribute(
+    IntPtr hwnd,
+    int dwAttribute,
+    out int pvAttribute,
+    int cbAttribute);
+
+        private const int DWMWA_CLOAKED = 14;
     }
 }
