@@ -1,15 +1,17 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.WindowsAndMessaging;
 using WinRT.Interop;
+using WinUIEx;
 
 namespace PowerDock
 {
-    public sealed partial class DockWindow : Window
+    public sealed partial class DockWindow : WindowEx
     {
         private Settings _settings = new();
         private HWND _hwnd = HWND.Null;
@@ -39,7 +41,10 @@ namespace PowerDock
             if (_hwnd == HWND.Null)
             {
                 _hwnd = GetWindowHandle(this);
-                RegisterAppBar(_hwnd);
+
+                _callbackMessageId = PInvoke.RegisterWindowMessage("AppBarMessage");
+
+                UpdateSettings();
             }
         }
         private HWND GetWindowHandle(Window window)
@@ -47,10 +52,26 @@ namespace PowerDock
             nint hwnd = WindowNative.GetWindowHandle(window);
             return new HWND(hwnd);
         }
-        private void RegisterAppBar(HWND hwnd)
-        {
-            _callbackMessageId = PInvoke.RegisterWindowMessage("AppBarMessage");
 
+        private void UpdateSettings()
+        {
+            SystemBackdrop = Settings.GetSystemBackdrop(_settings.Backdrop);
+
+            if (_appBarData.hWnd != IntPtr.Zero)
+            {
+                DestroyAppBar(_hwnd);
+            }
+
+            CreateAppBar(_hwnd);
+        }
+
+        //private void RegisterAppBar(HWND hwnd)
+        //{
+        //    CreateAppBar(hwnd);
+        //}
+
+        private void CreateAppBar(HWND hwnd)
+        {
             _appBarData = new APPBARDATA
             {
                 cbSize = (uint)Marshal.SizeOf<APPBARDATA>(),
@@ -62,6 +83,13 @@ namespace PowerDock
             PInvoke.SHAppBarMessage(ABM_NEW, ref _appBarData);
 
             UpdateWindowPosition();
+        }
+
+        private void DestroyAppBar(HWND hwnd)
+        {
+
+            PInvoke.SHAppBarMessage(ABM_REMOVE, ref _appBarData);
+            _appBarData = default;
         }
 
         private void UpdateWindowPosition()
@@ -182,11 +210,19 @@ namespace PowerDock
         Large
     }
 
+    internal enum DockBackdrop
+    {
+        Mica,
+        Transparent,
+        Acrylic
+    }
+
     internal class Settings
     {
         public bool ShowAppTitles { get; } = true;
         public Side Side { get; } = Side.Left;
         public DockSize DockSize { get; } = DockSize.Medium;
+        public DockBackdrop Backdrop { get; } = DockBackdrop.Mica;
 
         public static double WidthForSize(DockSize size)
         {
@@ -207,6 +243,17 @@ namespace PowerDock
                 DockSize.Large => 76,
                 _ => throw new NotImplementedException(),
             };
+        }
+        public static Microsoft.UI.Xaml.Media.SystemBackdrop GetSystemBackdrop(DockBackdrop backdrop)
+        {
+            return backdrop switch
+            {
+                DockBackdrop.Mica => new MicaBackdrop(),
+                DockBackdrop.Transparent => new TransparentTintBackdrop(),
+                DockBackdrop.Acrylic => new DesktopAcrylicBackdrop(),
+                _ => throw new NotImplementedException(),
+            };
+
         }
     }
 
