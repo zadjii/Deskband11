@@ -55,7 +55,7 @@ namespace PowerDock
 
         private void UpdateSettings()
         {
-            SystemBackdrop = Settings.GetSystemBackdrop(_settings.Backdrop);
+            SystemBackdrop = SettingsToViews.GetSystemBackdrop(_settings.Backdrop);
 
             if (_appBarData.hWnd != IntPtr.Zero)
             {
@@ -127,8 +127,8 @@ namespace PowerDock
 
         private void UpdateAppBarDataForEdge(Side side, DockSize size, double scaleFactor)
         {
-            double horizontalHeightDips = Settings.HeightForSize(size);
-            double verticalWidthDips = Settings.WidthForSize(size);
+            double horizontalHeightDips = SettingsToViews.HeightForSize(size);
+            double verticalWidthDips = SettingsToViews.WidthForSize(size);
             int screenHeight = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
             int screenWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
 
@@ -221,9 +221,13 @@ namespace PowerDock
     {
         public bool ShowAppTitles { get; } = true;
         public Side Side { get; } = Side.Left;
-        public DockSize DockSize { get; } = DockSize.Medium;
+        public DockSize DockSize { get; } = DockSize.Small;
         public DockBackdrop Backdrop { get; } = DockBackdrop.Mica;
 
+    }
+
+    internal static class SettingsToViews
+    {
         public static double WidthForSize(DockSize size)
         {
             return size switch
