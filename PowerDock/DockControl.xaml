@@ -100,18 +100,17 @@
 
             <DataTemplate x:Key="DeskbandTemplate" x:DataType="vm:TaskbarItemViewModel">
                 <Button
-                    MinWidth="20"
-                    MinHeight="20"
-                    Background="Blue"
-                    Command="{x:Bind InvokeCommand, Mode=OneWay}">
+                    Padding="2"
+                    BorderBrush="Transparent"
+                    Command="{x:Bind InvokeCommand, Mode=OneWay}"
+                    ToolTipService.ToolTip="{x:Bind Title, Mode=OneWay}">
                     <Grid
                         AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
                         Background="Transparent"
-                        ColumnSpacing="8"
                         Visibility="{x:Bind ShouldBeVisible, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
@@ -122,8 +121,8 @@
                             Visibility="{x:Bind HasIcon, Mode=OneWay}">
                             <cpcontrols:IconBox
                                 x:Name="IconBorder"
-                                Width="32"
-                                Height="32"
+                                Width="16"
+                                Height="16"
                                 VerticalAlignment="Center"
                                 AutomationProperties.AccessibilityView="Raw"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -133,27 +132,22 @@
                         <StackPanel
                             Grid.Column="1"
                             VerticalAlignment="Center"
-                            Background="Transparent"
                             Orientation="Vertical"
                             Visibility="{x:Bind HasText, Mode=OneWay}">
                             <TextBlock
                                 x:Name="TitleTextBlock"
-                                MaxWidth="200"
-                                MaxHeight="40"
+                                MaxWidth="100"
                                 Margin="0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                CharacterSpacing="12"
-                                FontSize="14"
+                                FontSize="10"
                                 Foreground="{ThemeResource TextFillColorPrimary}"
                                 Text="{x:Bind Title, Mode=OneWay}"
                                 TextAlignment="Left"
-                                TextTrimming="WordEllipsis"
+                                TextTrimming="CharacterEllipsis"
                                 TextWrapping="NoWrap" />
                             <TextBlock
                                 x:Name="SubTitleTextBlock"
-                                MaxWidth="152"
-                                MaxHeight="40"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 CharacterSpacing="11"
@@ -161,13 +155,12 @@
                                 Foreground="{ThemeResource TextFillColorTertiary}"
                                 Text="{x:Bind Subtitle, Mode=OneWay}"
                                 TextAlignment="Center"
-                                TextTrimming="WordEllipsis"
+                                TextTrimming="CharacterEllipsis"
                                 TextWrapping="NoWrap" />
                         </StackPanel>
 
                         <ItemsRepeater
                             Grid.Column="2"
-                            Margin="0,0,8,0"
                             HorizontalAlignment="Left"
                             ItemTemplate="{StaticResource CommandButtonTemplate}"
                             ItemsSource="{x:Bind Buttons, Mode=OneWay}">
@@ -187,8 +180,6 @@
     </UserControl.Resources>
 
     <Grid>
-
-
         <ScrollViewer
             HorizontalAlignment="Stretch"
             HorizontalScrollBarVisibility="Hidden"
@@ -196,16 +187,16 @@
             VerticalScrollBarVisibility="Auto"
             VerticalScrollMode="Disabled">
 
-            <!--<ItemsRepeater
+            <ItemsRepeater
                 HorizontalAlignment="Left"
                 ItemTemplate="{StaticResource DeskbandTemplate}"
-                ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}">-->
+                ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}">
 
-            <ItemsRepeater
+                <!--<ItemsRepeater
                 Width="900"
                 HorizontalAlignment="Left"
                 ItemTemplate="{StaticResource AppItemTemplate}"
-                ItemsSource="{x:Bind ViewModel.Apps, Mode=OneWay}">
+                ItemsSource="{x:Bind ViewModel.Apps, Mode=OneWay}">-->
                 <ItemsRepeater.Layout>
                     <StackLayout
                         x:Name="PanelLayout"
