@@ -20,6 +20,7 @@ namespace PowerDock
         //ObservableCollection<TaskbarApp> TaskbarItems { get; set; } = new ObservableCollection<TaskbarApp>();
 
         private HWND _hwnd = HWND.Null;
+        private APPBARDATA _appBarData;
         private uint _callbackMessageId;
         private MainViewModel ViewModel;
 
@@ -32,6 +33,11 @@ namespace PowerDock
             ExtendsContentIntoTitleBar = true;
             AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Collapsed;
             AppWindow.IsShownInSwitchers = false;
+            if (AppWindow.Presenter is OverlappedPresenter overlappedPresenter)
+            {
+                overlappedPresenter.SetBorderAndTitleBar(false, false);
+                overlappedPresenter.IsResizable = false;
+            }
             this.Activated += MainWindow_Activated;
         }
 
@@ -52,7 +58,7 @@ namespace PowerDock
         {
             _callbackMessageId = PInvoke.RegisterWindowMessage("AppBarMessage");
 
-            APPBARDATA abd = new()
+            _appBarData = new APPBARDATA
             {
                 cbSize = (uint)Marshal.SizeOf<APPBARDATA>(),
                 hWnd = hwnd,
@@ -60,30 +66,52 @@ namespace PowerDock
             };
 
             // Register this window as an appbar
-            PInvoke.SHAppBarMessage(ABM_NEW, ref abd);
+            PInvoke.SHAppBarMessage(ABM_NEW, ref _appBarData);
 
-            int height = 32; // height of your bar
+            UpdateWindowPosition();
+        }
+
+        private void UpdateWindowPosition()
+        {
+            var heightDips = ButtonsRowDef.Height.Value; // height of your bar
+
+            var dpi = PInvoke.GetDpiForWindow(_hwnd);
+
+            int heightPixels = (int)(heightDips * dpi / 96); // convert to physical pixels
 
             int screenWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
 
-            abd.uEdge = ABE_TOP;
-            abd.rc.left = 0;
-            abd.rc.top = 0;
-            abd.rc.right = screenWidth;
-            abd.rc.bottom = height;
+            // Get system border metrics
+            int borderWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXBORDER);
+            int edgeWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXEDGE);
+            int frameWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXFRAME);
+
+            _appBarData.uEdge = ABE_TOP;
+            _appBarData.rc.left = 0;
+            _appBarData.rc.top = 0;
+            _appBarData.rc.right = screenWidth;
+            _appBarData.rc.bottom = heightPixels;
 
             // Query and set position
-            PInvoke.SHAppBarMessage(ABM_QUERYPOS, ref abd);
-            PInvoke.SHAppBarMessage(ABM_SETPOS, ref abd);
+            PInvoke.SHAppBarMessage(ABM_QUERYPOS, ref _appBarData);
+            PInvoke.SHAppBarMessage(ABM_SETPOS, ref _appBarData);
+
+            // Account for system borders when moving the window
+            // Adjust position to account for window frame/border
+            int adjustedLeft = _appBarData.rc.left - frameWidth;
+            int adjustedTop = _appBarData.rc.top - frameWidth;
+            int adjustedWidth = (_appBarData.rc.right - _appBarData.rc.left) + (2 * frameWidth);
+            int adjustedHeight = (_appBarData.rc.bottom - _appBarData.rc.top) + (2 * frameWidth);
 
             // Move the actual window
-            PInvoke.MoveWindow(hwnd,
-                abd.rc.left,
-                abd.rc.top,
-                abd.rc.right - abd.rc.left,
-                abd.rc.bottom - abd.rc.top,
-                true);
+            PInvoke.MoveWindow(_hwnd,
+                adjustedLeft,
+                adjustedTop,
+                adjustedWidth,
+                adjustedHeight,
+                 true);
         }
+
         private static readonly uint ABM_NEW = 0x0;
         private static readonly uint ABM_REMOVE = 0x1;
         private static readonly uint ABM_QUERYPOS = 0x2;
@@ -91,33 +119,5 @@ namespace PowerDock
         private static readonly uint ABM_GETSTATE = 0x4;
 
         private static readonly uint ABE_TOP = 0x1;
-        //protected override void OnClosed(WindowEventArgs args)
-        //{
-        //    // Unregister appbar when closed
-        //    APPBARDATA abd = new()
-        //    {
-        //        cbSize = (uint)Marshal.SizeOf<APPBARDATA>(),
-        //        hWnd = _hWnd
-        //    };
-        //    PInvoke.SHAppBarMessage(ABM_REMOVE, ref abd);
-
-        //    base.OnClosed(args);
-        //}
-
-        //[RelayCommand]
-        //void PressButton()
-        //{
-        //    System.Collections.Generic.List<TaskbarApp> items = TaskbarApps.GetTaskbarWindows();
-        //    TaskbarItems.Clear();
-        //    foreach (TaskbarApp item in items)
-        //    {
-        //        TaskbarItems.Add(item);
-        //    }
-        //}
-
-        //private void Button_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
-        //{
-        //    PressButton();
-        //}
     }
 }

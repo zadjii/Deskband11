@@ -18,7 +18,7 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
+            <RowDefinition x:Name="ButtonsRowDef" Height="32" />
         </Grid.RowDefinitions>
         <ScrollViewer
             HorizontalAlignment="Stretch"
