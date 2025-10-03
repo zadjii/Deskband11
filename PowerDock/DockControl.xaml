@@ -179,7 +179,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid>
+    <Grid Margin="16,0,16,0">
         <ScrollViewer
             HorizontalAlignment="Stretch"
             HorizontalScrollBarVisibility="Hidden"

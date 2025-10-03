@@ -45,8 +45,13 @@ namespace PowerDock
 
                 _callbackMessageId = PInvoke.RegisterWindowMessage("AppBarMessage");
 
+
+
                 UpdateSettings();
             }
+
+            HwndExtensions.ToggleWindowStyle(_hwnd, false, WindowStyle.TiledWindow);
+
         }
         private HWND GetWindowHandle(Window window)
         {
