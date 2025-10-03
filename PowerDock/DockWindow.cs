@@ -52,6 +52,12 @@ namespace PowerDock
 
             HwndExtensions.ToggleWindowStyle(_hwnd, false, WindowStyle.TiledWindow);
 
+
+            unsafe
+            {
+                BOOL value = false;
+                PInvoke.DwmSetWindowAttribute(_hwnd, Windows.Win32.Graphics.Dwm.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &value, (uint)sizeof(BOOL));
+            }
         }
         private HWND GetWindowHandle(Window window)
         {
