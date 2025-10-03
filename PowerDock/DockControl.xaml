@@ -132,7 +132,6 @@
                         <StackPanel
                             Grid.Column="1"
                             VerticalAlignment="Center"
-                            Orientation="Vertical"
                             Visibility="{x:Bind HasText, Mode=OneWay}">
                             <TextBlock
                                 x:Name="TitleTextBlock"
@@ -140,7 +139,7 @@
                                 Margin="0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                FontSize="10"
+                                FontSize="12"
                                 Foreground="{ThemeResource TextFillColorPrimary}"
                                 Text="{x:Bind Title, Mode=OneWay}"
                                 TextAlignment="Left"
@@ -148,9 +147,9 @@
                                 TextWrapping="NoWrap" />
                             <TextBlock
                                 x:Name="SubTitleTextBlock"
+                                Margin="0,-4,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                CharacterSpacing="11"
                                 FontSize="10"
                                 Foreground="{ThemeResource TextFillColorTertiary}"
                                 Text="{x:Bind Subtitle, Mode=OneWay}"

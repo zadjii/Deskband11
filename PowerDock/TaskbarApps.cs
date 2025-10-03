@@ -1,6 +1,5 @@
 ﻿using Deskband.ViewModels;
 using Microsoft.CommandPalette.Extensions.Toolkit;
-using Microsoft.UI.Dispatching;
 using System.Collections.ObjectModel;
 
 namespace PowerDock;
@@ -10,7 +9,7 @@ internal class MainViewModel : IDisposable
 {
     private TaskbarWindowsService _taskbarWindows;
     private Settings _settings;
-    private DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+    private Microsoft.UI.Dispatching.DispatcherQueue dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
     public ObservableCollection<TaskbarItemViewModel> StartItems { get; } = new();
     public ObservableCollection<TaskbarItemViewModel> EndItems { get; } = new();
@@ -22,7 +21,7 @@ internal class MainViewModel : IDisposable
 
         _taskbarWindows.Apps.CollectionChanged += Apps_CollectionChanged;
 
-        EndItems.Add(new ButtonsWithLabelsTaskBand());
+        EndItems.Add(new ClockTaskBand());
 
     }
 
@@ -64,5 +63,46 @@ public partial class ButtonsWithLabelsTaskBand : TaskbarItemViewModel
         AnonymousCommand bar = new(() => { }) { Name = "Same", Icon = new("\uE98F") };
         Buttons.Add(new CommandViewModel(foo));
         Buttons.Add(new CommandViewModel(bar));
+    }
+}
+
+public partial class ClockTaskBand : TaskbarItemViewModel
+{
+    private Microsoft.UI.Dispatching.DispatcherQueue dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+
+    public override string Id => "builtin.ClockTaskBand";
+    public ClockTaskBand()
+    {
+        Title = DateTime.Now.ToString("HH:mm");
+        Subtitle = DateTime.Now.ToString("ddd dd MMM");
+
+        // Create a timer to update the time every minute
+        System.Timers.Timer timer = new(60000); // 60000 ms = 1 minute
+        // but we want it to tick on the minute, so calculate the initial delay
+        DateTime now = DateTime.Now;
+        timer.Interval = 60000 - (now.Second * 1000 + now.Millisecond);
+        // then after the first tick, set it to 60 seconds
+
+        timer.Elapsed += Timer_ElapsedFirst;
+        timer.Start();
+    }
+
+    private void Timer_ElapsedFirst(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        // After the first tick, set the interval to 60 seconds
+        System.Timers.Timer timer = (System.Timers.Timer)sender;
+        timer.Interval = 60000;
+        timer.Elapsed -= Timer_ElapsedFirst;
+        timer.Elapsed += Timer_Elapsed;
+        Timer_Elapsed(sender, e);
+    }
+    private void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        dispatcherQueue.TryEnqueue(() =>
+        {
+            Title = DateTime.Now.ToString("HH:mm");
+            Subtitle = DateTime.Now.ToString("ddd dd MMM");
+
+        });
     }
 }
