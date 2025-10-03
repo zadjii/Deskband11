@@ -38,7 +38,7 @@ public sealed partial class DockControl : UserControl, INotifyPropertyChanged
     }
 
     [RelayCommand]
-    private void Engage(object? whatever)
+    private void SearchOpenCmdPal(object? whatever)
     {
         // URI invoke "x-cmdpal://"
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo

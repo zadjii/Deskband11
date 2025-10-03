@@ -1,4 +1,7 @@
-﻿using Deskband.ViewModels;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Deskband.ViewModels;
+using DeskBand.ViewModels.Messages;
+using DeskBand11;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using System.Collections.ObjectModel;
 
@@ -21,7 +24,9 @@ internal class MainViewModel : IDisposable
 
         _taskbarWindows.Apps.CollectionChanged += Apps_CollectionChanged;
 
+        EndItems.Add(new AudioBand());
         EndItems.Add(new ClockTaskBand());
+        EndItems.Add(new SettingsTaskBand());
 
     }
 
@@ -63,6 +68,16 @@ public partial class ButtonsWithLabelsTaskBand : TaskbarItemViewModel
         AnonymousCommand bar = new(() => { }) { Name = "Same", Icon = new("\uE98F") };
         Buttons.Add(new CommandViewModel(foo));
         Buttons.Add(new CommandViewModel(bar));
+    }
+}
+
+public partial class SettingsTaskBand : TaskbarItemViewModel
+{
+    public override string Id => "builtin.SettingsTaskBand";
+    public SettingsTaskBand()
+    {
+        Command = new AnonymousCommand(() => WeakReferenceMessenger.Default.Send<OpenSettingsMessage>(new()));
+        Icon = new IconInfo("\uE713");
     }
 }
 

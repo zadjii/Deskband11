@@ -101,6 +101,7 @@
             <DataTemplate x:Key="DeskbandTemplate" x:DataType="vm:TaskbarItemViewModel">
                 <Button
                     Padding="2"
+                    Background="Transparent"
                     BorderBrush="Transparent"
                     Command="{x:Bind InvokeCommand, Mode=OneWay}"
                     ToolTipService.ToolTip="{x:Bind Title, Mode=OneWay}">
@@ -131,6 +132,7 @@
                         </StackPanel>
                         <StackPanel
                             Grid.Column="1"
+                            Margin="8,0,8,0"
                             VerticalAlignment="Center"
                             Visibility="{x:Bind HasText, Mode=OneWay}">
                             <TextBlock
@@ -219,7 +221,7 @@
             HorizontalContentAlignment="Left"
             AllowFocusOnInteraction="True"
             BorderBrush="{ThemeResource TextBoxButtonBorderThemeBrush}"
-            Command="{x:Bind EngageCommand, Mode=OneWay}"
+            Command="{x:Bind SearchOpenCmdPalCommand, Mode=OneWay}"
             CornerRadius="12"
             FontSize="8">
             <TextBlock HorizontalAlignment="Left" Foreground="{ThemeResource ListViewItemPlaceholderBackgroundThemeBrush}">Search...</TextBlock>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<winuiex:WindowEx
+    x:Class="PowerDock.DockSettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:local="using:PowerDock"
+    xmlns:winuiex="using:WinUIEx"
+    Title="PowerDock Settings"
+    Width="500"
+    Height="600">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TitleBar Title="PowerDock Settings" Grid.Row="0">
+            <TitleBar.IconSource>
+                <SymbolIconSource Symbol="Setting" />
+            </TitleBar.IconSource>
+        </TitleBar>
+
+        <!--  Settings Content  -->
+        <ScrollViewer
+            Grid.Row="1"
+            Padding="24,16"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="24">
+
+                <!--  Appearance Section  -->
+                <controls:SettingsCard Header="Appearance">
+                    <controls:SettingsCard.HeaderIcon>
+                        <!--<SymbolIcon Symbol="Personalize" />-->
+                    </controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsCard.Description>
+                        Configure the visual appearance of your dock
+                    </controls:SettingsCard.Description>
+                </controls:SettingsCard>
+
+                <!--  Show App Titles  -->
+                <controls:SettingsCard Header="Show App Titles">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="FontSize" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsCard.Description>
+                        Display application names next to icons
+                    </controls:SettingsCard.Description>
+                    <ToggleSwitch x:Name="ShowAppTitlesToggle" IsOn="{x:Bind Settings.ShowAppTitles, Mode=TwoWay}" />
+                </controls:SettingsCard>
+
+                <!--  Dock Size  -->
+                <controls:SettingsCard Header="Dock Size">
+                    <controls:SettingsCard.HeaderIcon>
+                        <!--<SymbolIcon Symbol="Resize" />-->
+                    </controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsCard.Description>
+                        Choose the size of your dock
+                    </controls:SettingsCard.Description>
+                    <ComboBox
+                        x:Name="DockSizeComboBox"
+                        MinWidth="120"
+                        SelectedIndex="{x:Bind SelectedDockSizeIndex, Mode=TwoWay}">
+                        <ComboBoxItem Content="Small" />
+                        <ComboBoxItem Content="Medium" />
+                        <ComboBoxItem Content="Large" />
+                    </ComboBox>
+                </controls:SettingsCard>
+
+                <!--  Dock Position  -->
+                <controls:SettingsCard Header="Dock Position">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="MoveToFolder" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsCard.Description>
+                        Choose where the dock appears on your screen
+                    </controls:SettingsCard.Description>
+                    <ComboBox
+                        x:Name="DockPositionComboBox"
+                        MinWidth="120"
+                        SelectedIndex="{x:Bind SelectedSideIndex, Mode=TwoWay}">
+                        <ComboBoxItem Content="Left" />
+                        <ComboBoxItem Content="Top" />
+                        <ComboBoxItem Content="Right" />
+                        <ComboBoxItem Content="Bottom" />
+                    </ComboBox>
+                </controls:SettingsCard>
+
+                <!--  Backdrop Style  -->
+                <controls:SettingsCard Header="Background Style">
+                    <controls:SettingsCard.HeaderIcon>
+                        <!--<SymbolIconSource Symbol="BackgroundColor" />-->
+                    </controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsCard.Description>
+                        Choose the background effect for your dock
+                    </controls:SettingsCard.Description>
+                    <ComboBox
+                        x:Name="BackdropComboBox"
+                        MinWidth="120"
+                        SelectedIndex="{x:Bind SelectedBackdropIndex, Mode=TwoWay}">
+                        <ComboBoxItem Content="Mica" />
+                        <ComboBoxItem Content="Transparent" />
+                        <ComboBoxItem Content="Acrylic" />
+                    </ComboBox>
+                </controls:SettingsCard>
+
+                <!--  Preview Section  -->
+                <controls:SettingsCard Header="Preview">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="View" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsCard.Description>
+                        Preview shows current settings (changes apply immediately)
+                    </controls:SettingsCard.Description>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock VerticalAlignment="Center" Text="Size:" />
+                        <TextBlock
+                            x:Name="PreviewSizeText"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold" />
+                        <TextBlock
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="Position:" />
+                        <TextBlock
+                            x:Name="PreviewPositionText"
+                            VerticalAlignment="Center"
+                            FontWeight="SemiBold" />
+                    </StackPanel>
+                </controls:SettingsCard>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!--  Action Buttons  -->
+        <Border
+            Grid.Row="2"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <Grid Padding="24,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        x:Name="ResetButton"
+                        Click="ResetButton_Click"
+                        Content="Reset to Defaults" />
+                    <Button
+                        x:Name="CloseButton"
+                        Click="CloseButton_Click"
+                        Content="Close"
+                        Style="{ThemeResource AccentButtonStyle}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</winuiex:WindowEx>

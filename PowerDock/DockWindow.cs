@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.Messaging;
+using DeskBand.ViewModels.Messages;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
@@ -11,7 +13,7 @@ using WinUIEx;
 
 namespace PowerDock
 {
-    public sealed partial class DockWindow : WindowEx
+    public sealed partial class DockWindow : WindowEx, IRecipient<OpenSettingsMessage>
     {
         private Settings _settings = new();
         private HWND _hwnd = HWND.Null;
@@ -35,6 +37,7 @@ namespace PowerDock
                 overlappedPresenter.IsResizable = false;
             }
             this.Activated += MainWindow_Activated;
+            WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
         }
 
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -65,13 +68,21 @@ namespace PowerDock
         private void UpdateSettings()
         {
             SystemBackdrop = SettingsToViews.GetSystemBackdrop(_settings.Backdrop);
+            _dock.UpdateSettings(_settings);
+            uint side = SettingsToViews.GetAppBarEdge(_settings.Side);
 
             if (_appBarData.hWnd != IntPtr.Zero)
             {
+                if (_appBarData.uEdge == side)
+                {
+                    return;
+                }
+
                 DestroyAppBar(_hwnd);
+                //this.Hide();
             }
-            _dock.UpdateSettings(_settings);
             CreateAppBar(_hwnd);
+            //this.Show();
         }
 
         private void CreateAppBar(HWND hwnd)
@@ -180,16 +191,28 @@ namespace PowerDock
             }
         }
 
+        public void Receive(OpenSettingsMessage message)
+        {
+            // Create and show the settings window
+            DockSettingsWindow settingsWindow = new(this, _settings);
+            settingsWindow.Activate();
+        }
+
+        public void RefreshSettings()
+        {
+            UpdateSettings();
+        }
+
         private static readonly uint ABM_NEW = 0x0;
         private static readonly uint ABM_REMOVE = 0x1;
         private static readonly uint ABM_QUERYPOS = 0x2;
         private static readonly uint ABM_SETPOS = 0x3;
         private static readonly uint ABM_GETSTATE = 0x4;
 
-        private static readonly uint ABE_LEFT = 0x0;
-        private static readonly uint ABE_TOP = 0x1;
-        private static readonly uint ABE_RIGHT = 0x2;
-        private static readonly uint ABE_BOTTOM = 0x3;
+        public static readonly uint ABE_LEFT = 0x0;
+        public static readonly uint ABE_TOP = 0x1;
+        public static readonly uint ABE_RIGHT = 0x2;
+        public static readonly uint ABE_BOTTOM = 0x3;
 
     }
 
@@ -217,10 +240,10 @@ namespace PowerDock
 
     internal class Settings
     {
-        public bool ShowAppTitles { get; } = false;
-        public Side Side { get; } = Side.Top;
-        public DockSize DockSize { get; } = DockSize.Small;
-        public DockBackdrop Backdrop { get; } = DockBackdrop.Mica;
+        public bool ShowAppTitles { get; set; } = false;
+        public Side Side { get; set; } = Side.Top;
+        public DockSize DockSize { get; set; } = DockSize.Small;
+        public DockBackdrop Backdrop { get; set; } = DockBackdrop.Acrylic;
     }
 
     internal static class SettingsToViews
@@ -254,7 +277,18 @@ namespace PowerDock
                 DockBackdrop.Acrylic => new DesktopAcrylicBackdrop(),
                 _ => throw new NotImplementedException(),
             };
+        }
 
+        public static uint GetAppBarEdge(Side side)
+        {
+            return side switch
+            {
+                Side.Left => DockWindow.ABE_LEFT,
+                Side.Top => DockWindow.ABE_TOP,
+                Side.Right => DockWindow.ABE_RIGHT,
+                Side.Bottom => DockWindow.ABE_BOTTOM,
+                _ => throw new NotImplementedException(),
+            };
         }
     }
 
