@@ -9,67 +9,12 @@
     xmlns:local="using:PowerDock"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
+    xmlns:vm="using:Deskband.ViewModels"
     xmlns:winuiex="using:WinUIEx"
     Title="PowerDock"
     mc:Ignorable="d">
-
-    <Grid>
-
-        <Grid.Resources>
-            <ResourceDictionary>
-                <DataTemplate x:Key="AppItemTemplate" x:DataType="local:TaskbarApp">
-                    <Button
-                        Padding="2"
-                        Background="Transparent"
-                        BorderBrush="Transparent"
-                        Command="{x:Bind SwitchToCommand, Mode=OneWay}"
-                        ToolTipService.ToolTip="{x:Bind Title, Mode=OneWay}">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <cpcontrols:IconBox
-                                x:Name="IconBorder"
-                                Width="16"
-                                Height="16"
-                                VerticalAlignment="Center"
-                                AutomationProperties.AccessibilityView="Raw"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                SourceKey="{x:Bind Icon, Mode=OneWay}"
-                                SourceRequested="{x:Bind help:IconCacheProvider.SourceRequested}" />
-                            <TextBlock
-                                MaxWidth="100"
-                                FontSize="10"
-                                Text="{x:Bind Title, Mode=OneWay}"
-                                TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
-                    </Button>
-                </DataTemplate>
-            </ResourceDictionary>
-        </Grid.Resources>
-
-        <ScrollViewer
-            HorizontalAlignment="Stretch"
-            HorizontalScrollBarVisibility="Hidden"
-            HorizontalScrollMode="Enabled"
-            VerticalScrollBarVisibility="Auto"
-            VerticalScrollMode="Disabled">
-
-            <ItemsRepeater
-                HorizontalAlignment="Left"
-                ItemTemplate="{StaticResource AppItemTemplate}"
-                ItemsSource="{x:Bind ViewModel.Apps, Mode=OneWay}">
-
-                <ItemsRepeater.Layout>
-                    <StackLayout
-                        x:Name="PanelLayout"
-                        Orientation="Horizontal"
-                        Spacing="4" />
-                </ItemsRepeater.Layout>
-
-                <ItemsRepeater.Transitions>
-                    <TransitionCollection />
-                </ItemsRepeater.Transitions>
-
-            </ItemsRepeater>
-
-        </ScrollViewer>
-    </Grid>
+    <Grid
+        x:Name="Root"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch" />
 </winuiex:WindowEx>

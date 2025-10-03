@@ -76,6 +76,7 @@ namespace Deskband.ViewModels
         public bool HasTitle => !string.IsNullOrEmpty(Title);
         public bool HasSubtitle => !string.IsNullOrEmpty(Subtitle);
         public bool HasText => HasTitle || HasSubtitle;
+        public bool HasCommand => Command is IInvokableCommand;
 
         // used just by the view to hide/show based on available space
         [ObservableProperty]
@@ -84,6 +85,12 @@ namespace Deskband.ViewModels
         // enabled/disabled in the settings
         [ObservableProperty]
         public partial bool IsEnabled { get; set; } = true;
+
+        [RelayCommand]
+        public void Invoke()
+        {
+            (Command as IInvokableCommand)?.Invoke(null);
+        }
     }
 
     public partial class CommandViewModel : ObservableObject, ICommand

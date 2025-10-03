@@ -18,13 +18,14 @@ namespace PowerDock
         private APPBARDATA _appBarData;
         private uint _callbackMessageId;
         private MainViewModel ViewModel;
-
+        private DockControl _dock;
         public DockWindow()
         {
             ViewModel = new MainViewModel(_settings);
+            _dock = new DockControl(ViewModel);
 
             InitializeComponent();
-
+            Root.Children.Add(_dock);
             ExtendsContentIntoTitleBar = true;
             AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Collapsed;
             AppWindow.IsShownInSwitchers = false;
@@ -61,7 +62,7 @@ namespace PowerDock
             {
                 DestroyAppBar(_hwnd);
             }
-
+            _dock.UpdateSettings(_settings);
             CreateAppBar(_hwnd);
         }
 
@@ -134,8 +135,6 @@ namespace PowerDock
 
             if (side == Side.Top)
             {
-                PanelLayout.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Horizontal;
-
                 _appBarData.uEdge = ABE_TOP;
                 _appBarData.rc.left = 0;
                 _appBarData.rc.top = 0;
@@ -144,8 +143,6 @@ namespace PowerDock
             }
             else if (side == Side.Bottom)
             {
-                PanelLayout.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Horizontal;
-
                 int heightPixels = (int)(horizontalHeightDips * scaleFactor);
 
                 _appBarData.uEdge = ABE_BOTTOM;
@@ -156,7 +153,6 @@ namespace PowerDock
             }
             else if (side == Side.Left)
             {
-                PanelLayout.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Vertical;
                 int widthPixels = (int)(verticalWidthDips * scaleFactor);
 
                 _appBarData.uEdge = ABE_LEFT;
@@ -167,7 +163,6 @@ namespace PowerDock
             }
             else if (side == Side.Right)
             {
-                PanelLayout.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Vertical;
                 int widthPixels = (int)(verticalWidthDips * scaleFactor);
 
                 _appBarData.uEdge = ABE_RIGHT;
@@ -219,11 +214,10 @@ namespace PowerDock
 
     internal class Settings
     {
-        public bool ShowAppTitles { get; } = true;
-        public Side Side { get; } = Side.Left;
+        public bool ShowAppTitles { get; } = false;
+        public Side Side { get; } = Side.Top;
         public DockSize DockSize { get; } = DockSize.Small;
-        public DockBackdrop Backdrop { get; } = DockBackdrop.Mica;
-
+        public DockBackdrop Backdrop { get; } = DockBackdrop.Transparent;
     }
 
     internal static class SettingsToViews

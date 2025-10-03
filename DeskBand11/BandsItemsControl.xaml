@@ -73,7 +73,7 @@
                 </Button>
             </DataTemplate>
 
-            <DataTemplate x:Key="DeskbandTemplate" x:DataType="local:TaskbarItemViewModel">
+            <DataTemplate x:Key="DeskbandTemplate" x:DataType="vm:TaskbarItemViewModel">
                 <Grid
                     AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
                     Background="Transparent"
@@ -152,7 +152,7 @@
                 </Grid>
             </DataTemplate>
 
-            <DataTemplate x:Key="FlyoutTemplate" x:DataType="local:TaskbarItemViewModel">
+            <DataTemplate x:Key="FlyoutTemplate" x:DataType="vm:TaskbarItemViewModel">
                 <Grid
                     AutomationProperties.Name="{x:Bind Title, Mode=OneWay}"
                     Background="Transparent"
