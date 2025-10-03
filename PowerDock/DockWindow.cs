@@ -19,7 +19,7 @@ namespace PowerDock
 
         public DockWindow()
         {
-            ViewModel = new MainViewModel();
+            ViewModel = new MainViewModel(_settings);
 
             InitializeComponent();
 
