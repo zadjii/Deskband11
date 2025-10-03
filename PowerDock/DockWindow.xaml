@@ -17,9 +17,9 @@
     </Window.SystemBackdrop>
 
     <Grid>
-        <Grid.RowDefinitions>
+        <!--<Grid.RowDefinitions>
             <RowDefinition x:Name="ButtonsRowDef" Height="32" />
-        </Grid.RowDefinitions>
+        </Grid.RowDefinitions>-->
         <ScrollViewer
             HorizontalAlignment="Stretch"
             HorizontalScrollBarVisibility="Hidden"
@@ -88,7 +88,10 @@
                     </ItemsPanelTemplate>
                 </ItemsRepeater.ItemsPanel>-->
                 <ItemsRepeater.Layout>
-                    <StackLayout Orientation="Horizontal" Spacing="4" />
+                    <StackLayout
+                        x:Name="PanelLayout"
+                        Orientation="Horizontal"
+                        Spacing="4" />
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.Transitions>
                     <TransitionCollection />

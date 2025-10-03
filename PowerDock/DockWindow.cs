@@ -7,18 +7,11 @@ using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.WindowsAndMessaging;
 using WinRT.Interop;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace PowerDock
 {
-    /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class DockWindow : Window
     {
-        //ObservableCollection<TaskbarApp> TaskbarItems { get; set; } = new ObservableCollection<TaskbarApp>();
-
+        private Settings _settings = new();
         private HWND _hwnd = HWND.Null;
         private APPBARDATA _appBarData;
         private uint _callbackMessageId;
@@ -73,11 +66,11 @@ namespace PowerDock
 
         private void UpdateWindowPosition()
         {
-            var heightDips = ButtonsRowDef.Height.Value; // height of your bar
+            //double heightDips = ButtonsRowDef.Height.Value; // height of your bar
 
-            var dpi = PInvoke.GetDpiForWindow(_hwnd);
+            uint dpi = PInvoke.GetDpiForWindow(_hwnd);
 
-            int heightPixels = (int)(heightDips * dpi / 96); // convert to physical pixels
+            //int heightPixels = (int)(heightDips * dpi / 96); // convert to physical pixels
 
             int screenWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
 
@@ -86,11 +79,12 @@ namespace PowerDock
             int edgeWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXEDGE);
             int frameWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXFRAME);
 
-            _appBarData.uEdge = ABE_TOP;
-            _appBarData.rc.left = 0;
-            _appBarData.rc.top = 0;
-            _appBarData.rc.right = screenWidth;
-            _appBarData.rc.bottom = heightPixels;
+            // _appBarData.uEdge = ABE_TOP;
+            // _appBarData.rc.left = 0;
+            // _appBarData.rc.top = 0;
+            // _appBarData.rc.right = screenWidth;
+            // _appBarData.rc.bottom = heightPixels;
+            UpdateAppBarDataForEdge(_settings.Side, dpi / 96.0);
 
             // Query and set position
             PInvoke.SHAppBarMessage(ABM_QUERYPOS, ref _appBarData);
@@ -112,12 +106,88 @@ namespace PowerDock
                  true);
         }
 
+        private void UpdateAppBarDataForEdge(Side side, double scaleFactor)
+        {
+            const double horizontalHeightDips = 32;
+            const double verticalWidthDips = 128;
+            int screenHeight = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
+            int screenWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
+
+            if (side == Side.Top)
+            {
+                PanelLayout.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Horizontal;
+
+                _appBarData.uEdge = ABE_TOP;
+                _appBarData.rc.left = 0;
+                _appBarData.rc.top = 0;
+                _appBarData.rc.right = screenWidth;
+                _appBarData.rc.bottom = (int)(horizontalHeightDips * scaleFactor);
+            }
+            else if (side == Side.Bottom)
+            {
+                PanelLayout.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Horizontal;
+
+                int heightPixels = (int)(horizontalHeightDips * scaleFactor);
+
+                _appBarData.uEdge = ABE_BOTTOM;
+                _appBarData.rc.left = 0;
+                _appBarData.rc.top = screenHeight - heightPixels;
+                _appBarData.rc.right = screenWidth;
+                _appBarData.rc.bottom = screenHeight;
+            }
+            else if (side == Side.Left)
+            {
+                PanelLayout.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Vertical;
+                int widthPixels = (int)(verticalWidthDips * scaleFactor);
+
+                _appBarData.uEdge = ABE_LEFT;
+                _appBarData.rc.left = 0;
+                _appBarData.rc.top = 0;
+                _appBarData.rc.right = widthPixels;
+                _appBarData.rc.bottom = screenHeight;
+            }
+            else if (side == Side.Right)
+            {
+                PanelLayout.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Vertical;
+                int widthPixels = (int)(verticalWidthDips * scaleFactor);
+
+                _appBarData.uEdge = ABE_RIGHT;
+                _appBarData.rc.left = screenWidth - widthPixels;
+                _appBarData.rc.top = 0;
+                _appBarData.rc.right = screenWidth;
+                _appBarData.rc.bottom = screenHeight;
+            }
+            else
+            {
+                return;
+            }
+        }
+
         private static readonly uint ABM_NEW = 0x0;
         private static readonly uint ABM_REMOVE = 0x1;
         private static readonly uint ABM_QUERYPOS = 0x2;
         private static readonly uint ABM_SETPOS = 0x3;
         private static readonly uint ABM_GETSTATE = 0x4;
 
+        private static readonly uint ABE_LEFT = 0x0;
         private static readonly uint ABE_TOP = 0x1;
+        private static readonly uint ABE_RIGHT = 0x2;
+        private static readonly uint ABE_BOTTOM = 0x3;
+
     }
+
+    internal enum Side
+    {
+        Left = 0,
+        Top = 1,
+        Right = 2,
+        Bottom = 3,
+    }
+
+    internal class Settings
+    {
+        public bool ShowAppTitles { get; } = true;
+        public Side Side { get; } = Side.Left;
+    }
+
 }
