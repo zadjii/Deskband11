@@ -6,7 +6,7 @@ using Microsoft.UI.Dispatching;
 using System.Collections.ObjectModel;
 using Windows.Foundation;
 
-namespace DeskBand11
+namespace Deskband.ViewModels
 {
     // If I had a CmdPal interface for this, the idl would look like this:
     /*
@@ -125,4 +125,5 @@ namespace DeskBand11
             });
         }
     }
+
 }

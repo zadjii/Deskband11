@@ -1,3 +1,4 @@
+using Deskband.ViewModels;
 using JPSoftworks.MediaControlsExtension.Model;
 using JPSoftworks.MediaControlsExtension.Services;
 using Microsoft.CommandPalette.Extensions;

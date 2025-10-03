@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DeskBand11.JsonDeskband;
+using Deskband.ViewModels;
+using Deskband.ViewModels.JsonDeskband;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -7,7 +8,6 @@ using Microsoft.UI.Xaml.Media;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using WinUIEx;
 
 namespace DeskBand11
@@ -207,23 +207,4 @@ namespace DeskBand11
 
         #endregion
     }
-
-    #region Data Classes
-
-    public class DeskbandItemSettings
-    {
-        [JsonPropertyName("id")]
-        public required string Id { get; set; }
-
-        [JsonPropertyName("enabled")]
-        public bool IsEnabled { get; set; } = true;
-    }
-
-    public class DeskbandSettings
-    {
-        [JsonPropertyName("deskbands")]
-        public List<DeskbandItemSettings> Deskbands { get; set; } = new();
-    }
-
-    #endregion
 }

@@ -1,7 +1,7 @@
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using System.Text.Json;
 
-namespace DeskBand11.JsonDeskband;
+namespace Deskband.ViewModels.JsonDeskband;
 
 /// <summary>
 /// Loads TaskbarItemViewModel instances from JSON deskband configurations

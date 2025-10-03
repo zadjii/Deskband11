@@ -2,7 +2,7 @@ using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using Windows.System;
 
-namespace DeskBand11.JsonDeskband;
+namespace Deskband.ViewModels.JsonDeskband;
 
 /// <summary>
 /// A command that opens a web URI when invoked
@@ -16,7 +16,7 @@ internal partial class WebUriCommand : InvokableCommand
         Id = id;
         Name = name;
         _uri = uri;
-        
+
         if (!string.IsNullOrEmpty(iconPath))
         {
             // Handle web URLs (like favicon.ico) vs local paths vs Unicode symbols
@@ -29,14 +29,9 @@ internal partial class WebUriCommand : InvokableCommand
             else if (iconPath.StartsWith("\\u") && iconPath.Length == 6)
             {
                 // Handle Unicode escape sequences like "\uE701"
-                if (int.TryParse(iconPath.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out int unicodeValue))
-                {
-                    Icon = new IconInfo(((char)unicodeValue).ToString());
-                }
-                else
-                {
-                    Icon = new IconInfo(iconPath);
-                }
+                Icon = int.TryParse(iconPath.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out int unicodeValue)
+                    ? new IconInfo(((char)unicodeValue).ToString())
+                    : new IconInfo(iconPath);
             }
             else
             {

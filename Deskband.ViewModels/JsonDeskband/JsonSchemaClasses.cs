@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace DeskBand11.JsonDeskband;
+namespace Deskband.ViewModels.JsonDeskband;
 
 /// <summary>
 /// Root object for the JSON deskband configuration

@@ -1,6 +1,6 @@
-using DeskBand11.JsonDeskband;
+using Deskband.ViewModels.JsonDeskband;
 
-namespace DeskBand11;
+namespace Deskband.ViewModels;
 
 /// <summary>
 /// Example usage of the JSON deskband loader

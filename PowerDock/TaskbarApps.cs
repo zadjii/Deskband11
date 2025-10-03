@@ -11,10 +11,6 @@ using Windows.Storage.Streams;
 
 namespace PowerDock
 {
-    public class TaskbarApps
-    {
-    }
-
     public partial class TaskbarApp
     {
         public IntPtr hWnd;

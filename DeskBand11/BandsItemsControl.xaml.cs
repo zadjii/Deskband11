@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
+using Deskband.ViewModels;
+using Deskband.ViewModels.JsonDeskband;
 using Microsoft.CmdPal.Common.Services;
 using Microsoft.CmdPal.UI.ViewModels.Models;
 using Microsoft.UI.Xaml;
@@ -162,7 +164,7 @@ namespace DeskBand11
                 string json = extension.GetRegistrationJson();
                 if (File.Exists(json))
                 {
-                    List<TaskbarItemViewModel> items = await JsonDeskband.JsonDeskbandLoader.LoadFromFileAsync(json, extension.PublicFolder);
+                    List<TaskbarItemViewModel> items = await JsonDeskbandLoader.LoadFromFileAsync(json, extension.PublicFolder);
 
                     this.DispatcherQueue.TryEnqueue(() =>
                     {

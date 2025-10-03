@@ -365,9 +365,4 @@ namespace DeskBand11
             Environment.Exit(0);
         }
     }
-
-    public record OpenSettingsMessage();
-    public record SettingsChangedMessage();
-    public record QuitMessage();
-    public record TaskbarRestartMessage();
 }

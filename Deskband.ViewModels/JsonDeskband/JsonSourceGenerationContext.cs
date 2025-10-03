@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace DeskBand11.JsonDeskband;
+namespace Deskband.ViewModels.JsonDeskband;
 
 /// <summary>
 /// JSON source generation context for AOT compatibility

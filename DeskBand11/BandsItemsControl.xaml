@@ -9,12 +9,13 @@
     xmlns:help="using:Microsoft.CmdPal.UI.Helpers"
     xmlns:local="using:DeskBand11"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Deskband.ViewModels"
     SizeChanged="OnSizeChanged"
     mc:Ignorable="d">
 
     <UserControl.Resources>
         <ResourceDictionary>
-            <DataTemplate x:Key="CommandButtonTemplate" x:DataType="local:CommandViewModel">
+            <DataTemplate x:Key="CommandButtonTemplate" x:DataType="vm:CommandViewModel">
                 <Button
                     MaxHeight="32"
                     Padding="4"
