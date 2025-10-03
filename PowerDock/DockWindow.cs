@@ -66,11 +66,7 @@ namespace PowerDock
 
         private void UpdateWindowPosition()
         {
-            //double heightDips = ButtonsRowDef.Height.Value; // height of your bar
-
             uint dpi = PInvoke.GetDpiForWindow(_hwnd);
-
-            //int heightPixels = (int)(heightDips * dpi / 96); // convert to physical pixels
 
             int screenWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
 
@@ -79,12 +75,7 @@ namespace PowerDock
             int edgeWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXEDGE);
             int frameWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXFRAME);
 
-            // _appBarData.uEdge = ABE_TOP;
-            // _appBarData.rc.left = 0;
-            // _appBarData.rc.top = 0;
-            // _appBarData.rc.right = screenWidth;
-            // _appBarData.rc.bottom = heightPixels;
-            UpdateAppBarDataForEdge(_settings.Side, dpi / 96.0);
+            UpdateAppBarDataForEdge(_settings.Side, _settings.DockSize, dpi / 96.0);
 
             // Query and set position
             PInvoke.SHAppBarMessage(ABM_QUERYPOS, ref _appBarData);
@@ -106,10 +97,10 @@ namespace PowerDock
                  true);
         }
 
-        private void UpdateAppBarDataForEdge(Side side, double scaleFactor)
+        private void UpdateAppBarDataForEdge(Side side, DockSize size, double scaleFactor)
         {
-            const double horizontalHeightDips = 32;
-            const double verticalWidthDips = 128;
+            double horizontalHeightDips = Settings.HeightForSize(size);
+            double verticalWidthDips = Settings.WidthForSize(size);
             int screenHeight = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
             int screenWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
 
@@ -184,10 +175,39 @@ namespace PowerDock
         Bottom = 3,
     }
 
+    internal enum DockSize
+    {
+        Small,
+        Medium,
+        Large
+    }
+
     internal class Settings
     {
         public bool ShowAppTitles { get; } = true;
         public Side Side { get; } = Side.Left;
+        public DockSize DockSize { get; } = DockSize.Medium;
+
+        public static double WidthForSize(DockSize size)
+        {
+            return size switch
+            {
+                DockSize.Small => 128,
+                DockSize.Medium => 192,
+                DockSize.Large => 256,
+                _ => throw new NotImplementedException(),
+            };
+        }
+        public static double HeightForSize(DockSize size)
+        {
+            return size switch
+            {
+                DockSize.Small => 32,
+                DockSize.Medium => 54,
+                DockSize.Large => 76,
+                _ => throw new NotImplementedException(),
+            };
+        }
     }
 
 }
