@@ -180,7 +180,14 @@
     </UserControl.Resources>
 
     <Grid Margin="16,0,16,0">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
         <ScrollViewer
+            Grid.Column="0"
             HorizontalAlignment="Stretch"
             HorizontalScrollBarVisibility="Hidden"
             HorizontalScrollMode="Enabled"
@@ -190,18 +197,10 @@
             <ItemsRepeater
                 HorizontalAlignment="Left"
                 ItemTemplate="{StaticResource DeskbandTemplate}"
-                ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}">
+                ItemsSource="{x:Bind ViewModel.StartItems, Mode=OneWay}">
 
-                <!--<ItemsRepeater
-                Width="900"
-                HorizontalAlignment="Left"
-                ItemTemplate="{StaticResource AppItemTemplate}"
-                ItemsSource="{x:Bind ViewModel.Apps, Mode=OneWay}">-->
                 <ItemsRepeater.Layout>
-                    <StackLayout
-                        x:Name="PanelLayout"
-                        Orientation="Horizontal"
-                        Spacing="4" />
+                    <StackLayout Orientation="{x:Bind ItemsOrientation}" Spacing="4" />
                 </ItemsRepeater.Layout>
 
                 <ItemsRepeater.Transitions>
@@ -211,5 +210,22 @@
             </ItemsRepeater>
 
         </ScrollViewer>
+
+
+        <ItemsRepeater
+            Grid.Column="1"
+            HorizontalAlignment="Right"
+            ItemTemplate="{StaticResource DeskbandTemplate}"
+            ItemsSource="{x:Bind ViewModel.EndItems, Mode=OneWay}">
+
+            <ItemsRepeater.Layout>
+                <StackLayout Orientation="{x:Bind ItemsOrientation}" Spacing="4" />
+            </ItemsRepeater.Layout>
+
+            <ItemsRepeater.Transitions>
+                <TransitionCollection />
+            </ItemsRepeater.Transitions>
+
+        </ItemsRepeater>
     </Grid>
 </UserControl>

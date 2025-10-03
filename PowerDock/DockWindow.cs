@@ -45,14 +45,11 @@ namespace PowerDock
 
                 _callbackMessageId = PInvoke.RegisterWindowMessage("AppBarMessage");
 
-
-
                 UpdateSettings();
             }
 
+            // These are used for removing the very subtle shadow/border that we get from Windows 11
             HwndExtensions.ToggleWindowStyle(_hwnd, false, WindowStyle.TiledWindow);
-
-
             unsafe
             {
                 BOOL value = false;
@@ -76,11 +73,6 @@ namespace PowerDock
             _dock.UpdateSettings(_settings);
             CreateAppBar(_hwnd);
         }
-
-        //private void RegisterAppBar(HWND hwnd)
-        //{
-        //    CreateAppBar(hwnd);
-        //}
 
         private void CreateAppBar(HWND hwnd)
         {
