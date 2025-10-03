@@ -217,7 +217,7 @@ namespace PowerDock
 
     internal class Settings
     {
-        public bool ShowAppTitles { get; } = true;
+        public bool ShowAppTitles { get; } = false;
         public Side Side { get; } = Side.Top;
         public DockSize DockSize { get; } = DockSize.Small;
         public DockBackdrop Backdrop { get; } = DockBackdrop.Mica;

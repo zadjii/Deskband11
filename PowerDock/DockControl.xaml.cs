@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Controls;
 using System.ComponentModel;
 
@@ -34,5 +35,16 @@ public sealed partial class DockControl : UserControl, INotifyPropertyChanged
         bool isHorizontal = settings.Side == Side.Top || settings.Side == Side.Bottom;
 
         ItemsOrientation = isHorizontal ? Orientation.Horizontal : Orientation.Vertical;
+    }
+
+    [RelayCommand]
+    private void Engage(object? whatever)
+    {
+        // URI invoke "x-cmdpal://"
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "x-cmdpal://",
+            UseShellExecute = true
+        });
     }
 }
