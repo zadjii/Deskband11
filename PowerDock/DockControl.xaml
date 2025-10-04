@@ -157,7 +157,8 @@
                                 Text="{x:Bind Subtitle, Mode=OneWay}"
                                 TextAlignment="Center"
                                 TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap" />
+                                TextWrapping="NoWrap"
+                                Visibility="{x:Bind Subtitle, Mode=OneWay, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
                         </StackPanel>
 
                         <ItemsRepeater
@@ -184,8 +185,8 @@
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="2*" />
+            <ColumnDefinition x:Name="SearchColumn" Width="*" />
+            <ColumnDefinition x:Name="EndColumn" Width="Auto" />
         </Grid.ColumnDefinitions>
 
         <ScrollViewer
@@ -214,6 +215,7 @@
         </ScrollViewer>
 
         <Button
+            x:Name="SearchButton"
             Grid.Column="1"
             Height="24"
             Margin="0,8"
@@ -223,7 +225,8 @@
             BorderBrush="{ThemeResource TextBoxButtonBorderThemeBrush}"
             Command="{x:Bind SearchOpenCmdPalCommand, Mode=OneWay}"
             CornerRadius="12"
-            FontSize="8">
+            FontSize="8"
+            Visibility="{x:Bind ShowSearchButton, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
             <TextBlock HorizontalAlignment="Left" Foreground="{ThemeResource ListViewItemPlaceholderBackgroundThemeBrush}">Search...</TextBlock>
         </Button>
 

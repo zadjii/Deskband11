@@ -56,6 +56,13 @@ internal sealed partial class DockSettingsWindow : WindowEx
             _parentWindow.RefreshSettings();
         };
 
+        ShowSearchButtonToggle.Toggled += (s, e) =>
+        {
+            Settings.ShowSearchButton = ShowSearchButtonToggle.IsOn;
+            UpdatePreviewText();
+            _parentWindow.RefreshSettings();
+        };
+
         DockSizeComboBox.SelectionChanged += (s, e) =>
         {
             Settings.DockSize = SelectedIndexToDockSize(DockSizeComboBox.SelectedIndex);

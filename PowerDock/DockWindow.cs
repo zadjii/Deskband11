@@ -241,9 +241,12 @@ namespace PowerDock
     internal class Settings
     {
         public bool ShowAppTitles { get; set; } = false;
+        public bool ShowSearchButton { get; set; } = true;
         public Side Side { get; set; } = Side.Top;
         public DockSize DockSize { get; set; } = DockSize.Small;
         public DockBackdrop Backdrop { get; set; } = DockBackdrop.Acrylic;
+
+
     }
 
     internal static class SettingsToViews

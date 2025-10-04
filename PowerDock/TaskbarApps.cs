@@ -32,6 +32,14 @@ internal class MainViewModel : IDisposable
 
     private void Apps_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
+        RegenerateApps();
+    }
+    public void UpdateSettings()
+    {
+        RegenerateApps();
+    }
+    private void RegenerateApps()
+    {
         StartItems.Clear();
         IEnumerable<TaskbarItemViewModel> appBands = _taskbarWindows.Apps.Select(AppToDeskband);
         foreach (TaskbarItemViewModel appBand in appBands)
@@ -39,6 +47,7 @@ internal class MainViewModel : IDisposable
             StartItems.Add(appBand);
         }
     }
+
 
     private TaskbarItemViewModel AppToDeskband(TaskbarApp app)
     {

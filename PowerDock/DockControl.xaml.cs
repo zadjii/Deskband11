@@ -23,6 +23,19 @@ public sealed partial class DockControl : UserControl, INotifyPropertyChanged
         }
     }
 
+    public bool ShowSearchButton
+    {
+        get => field;
+        set
+        {
+            if (field != value)
+            {
+                field = value;
+                PropertyChanged?.Invoke(this, new(nameof(ShowSearchButton)));
+            }
+        }
+    }
+
     internal DockControl(MainViewModel viewModel)
     {
         //MainViewModel mainModel = (MainViewModel)DataContext;
@@ -33,8 +46,16 @@ public sealed partial class DockControl : UserControl, INotifyPropertyChanged
     internal void UpdateSettings(Settings settings)
     {
         bool isHorizontal = settings.Side == Side.Top || settings.Side == Side.Bottom;
-
+        ViewModel.UpdateSettings();
         ItemsOrientation = isHorizontal ? Orientation.Horizontal : Orientation.Vertical;
+        ShowSearchButton = settings.ShowSearchButton;
+        SearchColumn.Width = ShowSearchButton
+            ? new Microsoft.UI.Xaml.GridLength(1, Microsoft.UI.Xaml.GridUnitType.Star)
+            : new Microsoft.UI.Xaml.GridLength(0, Microsoft.UI.Xaml.GridUnitType.Star);
+
+        EndColumn.Width = ShowSearchButton
+            ? new Microsoft.UI.Xaml.GridLength(2, Microsoft.UI.Xaml.GridUnitType.Star)
+            : new Microsoft.UI.Xaml.GridLength(1, Microsoft.UI.Xaml.GridUnitType.Auto);
     }
 
     [RelayCommand]

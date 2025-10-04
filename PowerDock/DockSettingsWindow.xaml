@@ -51,6 +51,17 @@
                     <ToggleSwitch x:Name="ShowAppTitlesToggle" IsOn="{x:Bind Settings.ShowAppTitles, Mode=TwoWay}" />
                 </controls:SettingsCard>
 
+                <!--  Show Search Button  -->
+                <controls:SettingsCard Header="Show Search Button">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="Find" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsCard.Description>
+                        Display the search button to access Command Palette
+                    </controls:SettingsCard.Description>
+                    <ToggleSwitch x:Name="ShowSearchButtonToggle" IsOn="{x:Bind Settings.ShowSearchButton, Mode=TwoWay}" />
+                </controls:SettingsCard>
+
                 <!--  Dock Size  -->
                 <controls:SettingsCard Header="Dock Size">
                     <controls:SettingsCard.HeaderIcon>
