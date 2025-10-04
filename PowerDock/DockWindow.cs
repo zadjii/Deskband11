@@ -27,6 +27,12 @@ namespace PowerDock
         private DockControl _dock;
         private DesktopAcrylicController _acrylicController;
         private SystemBackdropConfiguration _configurationSource;
+
+        /// <summary>
+        /// Gets the current settings instance
+        /// </summary>
+        internal Settings CurrentSettings => _settings;
+
         public DockWindow()
         {
             ViewModel = new MainViewModel(_settings);
@@ -45,6 +51,33 @@ namespace PowerDock
             this.Activated += MainWindow_Activated;
             WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
 
+            // Load settings asynchronously
+            _ = LoadSettingsAsync();
+        }
+
+        private async Task LoadSettingsAsync()
+        {
+            try
+            {
+                Settings loadedSettings = await DockSettingsWindow.LoadUserSettingsAsync();
+
+                // Update our settings reference
+                _settings = loadedSettings;
+
+                // Update the ViewModel with the loaded settings
+                ViewModel.UpdateSettings();
+
+                // If the window handle is available, update the window position
+                if (_hwnd != HWND.Null)
+                {
+                    UpdateSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading settings: {ex.Message}");
+                // Continue with default settings if loading fails
+            }
         }
 
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -285,7 +318,7 @@ namespace PowerDock
 
     }
 
-    internal enum Side
+    public enum Side
     {
         Left = 0,
         Top = 1,
@@ -293,29 +326,27 @@ namespace PowerDock
         Bottom = 3,
     }
 
-    internal enum DockSize
+    public enum DockSize
     {
         Small,
         Medium,
         Large
     }
 
-    internal enum DockBackdrop
+    public enum DockBackdrop
     {
         Mica,
         Transparent,
         Acrylic
     }
 
-    internal class Settings
+    public class Settings
     {
         public bool ShowAppTitles { get; set; } = false;
         public bool ShowSearchButton { get; set; } = true;
         public Side Side { get; set; } = Side.Top;
         public DockSize DockSize { get; set; } = DockSize.Small;
         public DockBackdrop Backdrop { get; set; } = DockBackdrop.Acrylic;
-
-
     }
 
     internal static class SettingsToViews

@@ -166,6 +166,10 @@
                         x:Name="ResetButton"
                         Click="ResetButton_Click"
                         Content="Reset to Defaults" />
+                    <!--<Button
+                        x:Name="SaveButton"
+                        Click="SaveButton_Click"
+                        Content="Save" />-->
                     <Button
                         x:Name="CloseButton"
                         Click="CloseButton_Click"
