@@ -13,6 +13,7 @@
     xmlns:winuiex="using:WinUIEx"
     Title="PowerDock"
     mc:Ignorable="d">
+
     <Grid
         x:Name="Root"
         HorizontalAlignment="Stretch"

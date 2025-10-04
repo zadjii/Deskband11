@@ -1,13 +1,17 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DeskBand.ViewModels.Messages;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System.Runtime.InteropServices;
+using Windows.UI;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.WindowsAndMessaging;
+using WinRT;
 using WinRT.Interop;
 using WinUIEx;
 
@@ -21,6 +25,8 @@ namespace PowerDock
         private uint _callbackMessageId;
         private MainViewModel ViewModel;
         private DockControl _dock;
+        private DesktopAcrylicController _acrylicController;
+        private SystemBackdropConfiguration _configurationSource;
         public DockWindow()
         {
             ViewModel = new MainViewModel(_settings);
@@ -38,6 +44,7 @@ namespace PowerDock
             }
             this.Activated += MainWindow_Activated;
             WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
+
         }
 
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -59,6 +66,7 @@ namespace PowerDock
                 PInvoke.DwmSetWindowAttribute(_hwnd, Windows.Win32.Graphics.Dwm.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, &value, (uint)sizeof(BOOL));
             }
         }
+
         private HWND GetWindowHandle(Window window)
         {
             nint hwnd = WindowNative.GetWindowHandle(window);
@@ -68,6 +76,13 @@ namespace PowerDock
         private void UpdateSettings()
         {
             SystemBackdrop = SettingsToViews.GetSystemBackdrop(_settings.Backdrop);
+
+            // If the backdrop is acrylic, things are more complicated
+            if (_settings.Backdrop == DockBackdrop.Acrylic)
+            {
+                SetAcrylic();
+            }
+
             _dock.UpdateSettings(_settings);
             uint side = SettingsToViews.GetAppBarEdge(_settings.Side);
 
@@ -79,11 +94,65 @@ namespace PowerDock
                 }
 
                 DestroyAppBar(_hwnd);
-                //this.Hide();
             }
             CreateAppBar(_hwnd);
-            //this.Show();
         }
+
+        // We want to use DesktopAcrylicKind.Thin and custom colors as this is the default material
+        // other Shell surfaces are using, this cannot be set in XAML however.
+        private void SetAcrylic()
+        {
+            if (DesktopAcrylicController.IsSupported())
+            {
+                // Hooking up the policy object.
+                _configurationSource = new SystemBackdropConfiguration
+                {
+                    // Initial configuration state.
+                    IsInputActive = true,
+                };
+                UpdateAcrylic();
+            }
+        }
+
+        private void UpdateAcrylic()
+        {
+            if (_acrylicController != null)
+            {
+                _acrylicController.RemoveAllSystemBackdropTargets();
+                _acrylicController.Dispose();
+            }
+
+            _acrylicController = GetAcrylicConfig(Content);
+
+            // Enable the system backdrop.
+            // Note: Be sure to have "using WinRT;" to support the Window.As<...>() call.
+            _acrylicController.AddSystemBackdropTarget(this.As<ICompositionSupportsSystemBackdrop>());
+            _acrylicController.SetSystemBackdropConfiguration(_configurationSource);
+        }
+
+        private static DesktopAcrylicController GetAcrylicConfig(UIElement content)
+        {
+            FrameworkElement? feContent = content as FrameworkElement;
+
+            return feContent?.ActualTheme == ElementTheme.Light
+                ? new DesktopAcrylicController()
+                {
+                    Kind = DesktopAcrylicKind.Thin,
+                    TintColor = Color.FromArgb(255, 243, 243, 243),
+                    LuminosityOpacity = 0.90f,
+                    TintOpacity = 0.0f,
+                    FallbackColor = Color.FromArgb(255, 238, 238, 238),
+                }
+                : new DesktopAcrylicController()
+                {
+                    Kind = DesktopAcrylicKind.Thin,
+                    TintColor = Color.FromArgb(255, 32, 32, 32),
+                    LuminosityOpacity = 0.96f,
+                    TintOpacity = 0.5f,
+                    FallbackColor = Color.FromArgb(255, 28, 28, 28),
+                };
+        }
+
 
         private void CreateAppBar(HWND hwnd)
         {
@@ -271,13 +340,13 @@ namespace PowerDock
                 _ => throw new NotImplementedException(),
             };
         }
-        public static Microsoft.UI.Xaml.Media.SystemBackdrop GetSystemBackdrop(DockBackdrop backdrop)
+        public static Microsoft.UI.Xaml.Media.SystemBackdrop? GetSystemBackdrop(DockBackdrop backdrop)
         {
             return backdrop switch
             {
                 DockBackdrop.Mica => new MicaBackdrop(),
                 DockBackdrop.Transparent => new TransparentTintBackdrop(),
-                DockBackdrop.Acrylic => new DesktopAcrylicBackdrop(),
+                DockBackdrop.Acrylic => null, // new DesktopAcrylicBackdrop(),
                 _ => throw new NotImplementedException(),
             };
         }
