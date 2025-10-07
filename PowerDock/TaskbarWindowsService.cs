@@ -244,7 +244,7 @@ namespace PowerDock
         private const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
 
         private const int OBJID_WINDOW = 0;
-        private static IntPtr GetWindowIcon(IntPtr hWnd)
+        public static IntPtr GetWindowIcon(IntPtr hWnd)
         {
             const int ICON_SMALL2 = 2;
 
@@ -267,7 +267,7 @@ namespace PowerDock
             return hIcon;
         }
 
-        private static IRandomAccessStream? ConvertIconToStream(IntPtr hIcon)
+        public static IRandomAccessStream? ConvertIconToStream(IntPtr hIcon)
         {
             using (System.Drawing.Icon icon = System.Drawing.Icon.FromHandle(hIcon))
             using (MemoryStream memoryStream = new())

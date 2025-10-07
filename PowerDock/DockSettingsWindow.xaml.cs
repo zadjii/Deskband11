@@ -187,7 +187,7 @@ internal sealed partial class DockSettingsWindow : WindowEx
     /// Load PowerDock settings from JSON file
     /// </summary>
     /// <returns>The loaded settings or default settings if loading fails</returns>
-    public static async Task<Settings> LoadUserSettingsAsync()
+    public static Settings LoadUserSettings()
     {
         try
         {
@@ -195,7 +195,7 @@ internal sealed partial class DockSettingsWindow : WindowEx
 
             if (File.Exists(settingsPath))
             {
-                string json = await File.ReadAllTextAsync(settingsPath);
+                string json = File.ReadAllText(settingsPath);
                 Settings? settings = JsonSerializer.Deserialize<Settings>(json, PowerDockSourceGenerationContext.Default.Settings);
 
                 if (settings is not null)

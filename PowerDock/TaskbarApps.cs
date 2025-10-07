@@ -2,8 +2,11 @@
 using Deskband.ViewModels;
 using DeskBand.ViewModels.Messages;
 using DeskBand11;
+using Microsoft.CmdPal.Ext.WindowWalker;
+using Microsoft.CmdPal.Ext.WindowWalker.Pages;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using System.Collections.ObjectModel;
+using Windows.Storage.Streams;
 
 namespace PowerDock;
 
@@ -17,6 +20,8 @@ internal class MainViewModel : IDisposable
     public ObservableCollection<TaskbarItemViewModel> StartItems { get; } = new();
     public ObservableCollection<TaskbarItemViewModel> EndItems { get; } = new();
 
+    private WindowWalkerListPage _ww;
+
     public MainViewModel(Settings settings)
     {
         _settings = settings;
@@ -28,15 +33,62 @@ internal class MainViewModel : IDisposable
         EndItems.Add(new ClockTaskBand());
         EndItems.Add(new SettingsTaskBand());
 
+        _ww = new WindowWalkerListPage();
+        _ww.ItemsChanged += WindowsChanged;
+        RegenWindows();
+
+    }
+
+    private void WindowsChanged(object sender, Microsoft.CommandPalette.Extensions.IItemsChangedEventArgs args)
+    {
+    }
+
+    private void RegenWindows()
+    {
+        StartItems.Clear();
+        Microsoft.CommandPalette.Extensions.IListItem[] items = _ww.GetItems();
+        foreach (Microsoft.CommandPalette.Extensions.IListItem item in items)
+        {
+            string title = _settings.ShowAppTitles ? item.Title : string.Empty;
+            WindowWalkerListItem li = item as WindowWalkerListItem;
+            IconInfo icon = new(".");
+            if (li != null)
+            {
+                nint hwnd = li.Window?.Hwnd ?? IntPtr.Zero;
+                nint hIcon = TaskbarWindowsService.GetWindowIcon(hwnd);
+                IRandomAccessStream? iconStream = hIcon != IntPtr.Zero ? TaskbarWindowsService.ConvertIconToStream(hIcon) : null;
+                if (iconStream != null)
+                {
+                    icon = IconInfo.FromStream(iconStream);
+                }
+            }
+
+            TaskbarItemViewModel tvi = new()
+            {
+                Title = title,
+                Subtitle = string.Empty,
+                Icon = icon, // new("."),// ((Command)item.Command).Icon,
+                Command = item.Command
+            };
+            //var commandIcon = (item as)
+            //Command? switchToCommand = item.Command as Command;
+            //if (switchToCommand != null)
+            //{
+            //    tvi.Icon = switchToCommand.Icon;
+            //}
+            StartItems.Add(tvi);
+        }
     }
 
     private void Apps_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-        RegenerateApps();
+        // RegenerateApps();
+        RegenWindows();
     }
     public void UpdateSettings()
     {
-        RegenerateApps();
+        // RegenerateApps();
+        RegenWindows();
     }
     private void RegenerateApps()
     {

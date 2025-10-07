@@ -19,7 +19,7 @@ namespace PowerDock
 {
     public sealed partial class DockWindow : WindowEx, IRecipient<OpenSettingsMessage>
     {
-        private Settings _settings = new();
+        private readonly Settings _settings;
         private HWND _hwnd = HWND.Null;
         private APPBARDATA _appBarData;
         private uint _callbackMessageId;
@@ -39,6 +39,8 @@ namespace PowerDock
 
         public DockWindow()
         {
+            _settings = DockSettingsWindow.LoadUserSettings();
+
             ViewModel = new MainViewModel(_settings);
             _dock = new DockControl(ViewModel);
 
@@ -71,8 +73,8 @@ namespace PowerDock
             nint hotKeyPrcPointer = Marshal.GetFunctionPointerForDelegate(_customWndProc);
             _originalWndProc = Marshal.GetDelegateForFunctionPointer<WNDPROC>(PInvoke.SetWindowLongPtr(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, hotKeyPrcPointer));
 
-            // Load settings asynchronously
-            _ = LoadSettingsAsync();
+            //// Load settings asynchronously
+            //_ = LoadSettings();
 
 
             // Disable minimize and maximize box
@@ -85,14 +87,14 @@ namespace PowerDock
             UpdateSettings();
         }
 
-        private async Task LoadSettingsAsync()
+        private void LoadSettings()
         {
             try
             {
-                Settings loadedSettings = await DockSettingsWindow.LoadUserSettingsAsync();
+                //Settings loadedSettings = await DockSettingsWindow.LoadUserSettingsAsync();
 
-                // Update our settings reference
-                _settings = loadedSettings;
+                //// Update our settings reference
+                //_settings = loadedSettings;
 
                 // Update the ViewModel with the loaded settings
                 ViewModel.UpdateSettings();
