@@ -3,6 +3,7 @@ using Deskband.ViewModels;
 using DeskBand.ViewModels.Messages;
 using DeskBand11;
 using Microsoft.CmdPal.Ext.WindowWalker;
+using Microsoft.CmdPal.Ext.WindowWalker.Helpers;
 using Microsoft.CmdPal.Ext.WindowWalker.Pages;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using System.Collections.ObjectModel;
@@ -33,7 +34,10 @@ internal class MainViewModel : IDisposable
         EndItems.Add(new ClockTaskBand());
         EndItems.Add(new SettingsTaskBand());
 
+        SettingsManager.Instance.InMruOrder = false;
+        SettingsManager.Instance.ResultsFromVisibleDesktopOnly = true;
         _ww = new WindowWalkerListPage();
+
         _ww.ItemsChanged += WindowsChanged;
         RegenWindows();
 

@@ -69,7 +69,7 @@ public class SettingsManager : JsonSettingsManager, ISettingsInterface
         "Resources.windowwalker_SettingInMruOrder_Description",
         true);
 
-    public bool ResultsFromVisibleDesktopOnly => _resultsFromVisibleDesktopOnly.Value;
+    public bool ResultsFromVisibleDesktopOnly { get => _resultsFromVisibleDesktopOnly.Value; set => _resultsFromVisibleDesktopOnly.Value = value; }
 
     public bool SubtitleShowPid => _subtitleShowPid.Value;
 
@@ -81,11 +81,11 @@ public class SettingsManager : JsonSettingsManager, ISettingsInterface
 
     public bool OpenAfterKillAndClose => _openAfterKillAndClose.Value;
 
-    public bool HideKillProcessOnElevatedProcesses => _hideKillProcessOnElevatedProcesses.Value;
+    public bool HideKillProcessOnElevatedProcesses { get => _hideKillProcessOnElevatedProcesses.Value; set => _hideKillProcessOnElevatedProcesses.Value = value; }
 
-    public bool HideExplorerSettingInfo => _hideExplorerSettingInfo.Value;
+    public bool HideExplorerSettingInfo { get => _hideExplorerSettingInfo.Value; set => _hideExplorerSettingInfo.Value = value; }
 
-    public bool InMruOrder => _inMruOrder.Value;
+    public bool InMruOrder { get => _inMruOrder.Value; set => _inMruOrder.Value = value; }
 
     internal static string SettingsJsonPath()
     {
@@ -116,7 +116,7 @@ public class SettingsManager : JsonSettingsManager, ISettingsInterface
         Settings.SettingsChanged += (s, a) => this.SaveSettings();
     }
 
-    internal static SettingsManager Instance
+    public static SettingsManager Instance
     {
         get
         {
