@@ -14,6 +14,8 @@
     <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<IsAotCompatible>true</IsAotCompatible>
+	<CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,6 +52,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.0-prerelease.250720.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4948" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250907003" />
     <PackageReference Include="WinUIEx" Version="2.8.0" />
@@ -73,7 +76,7 @@
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
   </PropertyGroup>
 
-  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <PublishSingleFile>False</PublishSingleFile>
     <PublishReadyToRun>False</PublishReadyToRun>
