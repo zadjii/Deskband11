@@ -117,7 +117,7 @@ internal static class ThumbnailLoader
             scaledStream?.Dispose();
             bitmap?.Dispose();
             stream?.Dispose();
-            throw;
+            return null;
         }
     }
 

@@ -6,7 +6,6 @@ using Microsoft.CmdPal.Ext.WindowWalker.Components;
 //using Microsoft.CmdPal.Ext.WindowWalker.Properties;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
-using System.Diagnostics;
 
 namespace Microsoft.CmdPal.Ext.WindowWalker.Commands;
 
@@ -18,21 +17,21 @@ internal sealed partial class SwitchToWindowCommand : InvokableCommand
     {
         //Name = Resources.switch_to_command_title;
         _window = window;
-        if (_window is not null)
-        {
-            Process? p = Process.GetProcessById((int)_window.Process.ProcessID);
-            if (p is not null)
-            {
-                try
-                {
-                    string? processFileName = p.MainModule?.FileName;
-                    Icon = new IconInfo(processFileName);
-                }
-                catch
-                {
-                }
-            }
-        }
+        //if (_window is not null)
+        //{
+        //    try
+        //    {
+        //        Process? p = Process.GetProcessById((int)_window.Process.ProcessID);
+        //        if (p is not null)
+        //        {
+        //            string? processFileName = p.MainModule?.FileName;
+        //            Icon = new IconInfo(processFileName);
+        //        }
+        //    }
+        //    catch
+        //    {
+        //    }
+        //}
     }
 
     public override ICommandResult Invoke()
