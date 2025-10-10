@@ -26,6 +26,11 @@ internal class MainViewModel : IDisposable
     private WindowWalkerListPage _ww;
     private VirtualDesktopsListPage _vd;
 
+    private TaskbarItemViewModel _settingsBand;
+    private TaskbarItemViewModel _clockBand;
+    private TaskbarItemViewModel _audioBand;
+
+
     public MainViewModel(Settings settings)
     {
         _settings = settings;
@@ -33,9 +38,9 @@ internal class MainViewModel : IDisposable
 
         _taskbarWindows.Apps.CollectionChanged += Apps_CollectionChanged;
 
-        //EndItems.Add(new AudioBand());
-        //EndItems.Add(new ClockTaskBand());
-        //EndItems.Add(new SettingsTaskBand());
+        _settingsBand = new SettingsTaskBand();
+        _clockBand = new ClockTaskBand();
+        _audioBand = new AudioBand();
 
         SettingsManager.Instance.InMruOrder = false;
         SettingsManager.Instance.ResultsFromVisibleDesktopOnly = true;
@@ -55,17 +60,20 @@ internal class MainViewModel : IDisposable
 
     private void RegenEndItems()
     {
-        EndItems.Clear();
+
+        List<TaskbarItemViewModel> newItems = new();
+
         IListItem[] desktopItems = _vd.GetItems();
         foreach (IListItem vd in desktopItems)
         {
-            EndItems.Add(ListItemToDeskband(vd));
+            newItems.Add(ListItemToDeskband(vd));
         }
 
-        EndItems.Add(new AudioBand());
-        EndItems.Add(new ClockTaskBand());
-        EndItems.Add(new SettingsTaskBand());
+        newItems.Add(_audioBand);
+        newItems.Add(_clockBand);
+        newItems.Add(_settingsBand);
 
+        ListHelpers.InPlaceUpdateList(EndItems, newItems);
     }
 
     private void WindowsChanged(object sender, Microsoft.CommandPalette.Extensions.IItemsChangedEventArgs args)
