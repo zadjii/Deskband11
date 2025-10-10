@@ -122,7 +122,7 @@
                             Visibility="{x:Bind HasIcon, Mode=OneWay}">
                             <cpcontrols:IconBox
                                 x:Name="IconBorder"
-                                Width="16"
+                                MaxWidth="16"
                                 Height="16"
                                 VerticalAlignment="Center"
                                 AutomationProperties.AccessibilityView="Raw"

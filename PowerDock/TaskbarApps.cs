@@ -5,9 +5,11 @@ using DeskBand11;
 using Microsoft.CmdPal.Ext.WindowWalker;
 using Microsoft.CmdPal.Ext.WindowWalker.Helpers;
 using Microsoft.CmdPal.Ext.WindowWalker.Pages;
+using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using System.Collections.ObjectModel;
 using Windows.Storage.Streams;
+using WindowsDesktop;
 
 namespace PowerDock;
 
@@ -22,6 +24,7 @@ internal class MainViewModel : IDisposable
     public ObservableCollection<TaskbarItemViewModel> EndItems { get; } = new();
 
     private WindowWalkerListPage _ww;
+    private VirtualDesktopsListPage _vd;
 
     public MainViewModel(Settings settings)
     {
@@ -30,16 +33,38 @@ internal class MainViewModel : IDisposable
 
         _taskbarWindows.Apps.CollectionChanged += Apps_CollectionChanged;
 
-        EndItems.Add(new AudioBand());
-        EndItems.Add(new ClockTaskBand());
-        EndItems.Add(new SettingsTaskBand());
+        //EndItems.Add(new AudioBand());
+        //EndItems.Add(new ClockTaskBand());
+        //EndItems.Add(new SettingsTaskBand());
 
         SettingsManager.Instance.InMruOrder = false;
         SettingsManager.Instance.ResultsFromVisibleDesktopOnly = true;
         _ww = new WindowWalkerListPage();
-
+        _vd = new();
         _ww.ItemsChanged += WindowsChanged;
+        _vd.ItemsChanged += DesktopsChanged; ;
         RegenWindows();
+        RegenEndItems();
+    }
+
+    private void DesktopsChanged(object sender, IItemsChangedEventArgs args)
+    {
+        dispatcherQueue.TryEnqueue(() => RegenEndItems());
+
+    }
+
+    private void RegenEndItems()
+    {
+        EndItems.Clear();
+        IListItem[] desktopItems = _vd.GetItems();
+        foreach (IListItem vd in desktopItems)
+        {
+            EndItems.Add(ListItemToDeskband(vd));
+        }
+
+        EndItems.Add(new AudioBand());
+        EndItems.Add(new ClockTaskBand());
+        EndItems.Add(new SettingsTaskBand());
 
     }
 
@@ -54,7 +79,7 @@ internal class MainViewModel : IDisposable
         foreach (Microsoft.CommandPalette.Extensions.IListItem item in items)
         {
             string title = _settings.ShowAppTitles ? item.Title : string.Empty;
-            WindowWalkerListItem li = item as WindowWalkerListItem;
+            WindowWalkerListItem? li = item as WindowWalkerListItem;
             IconInfo icon = new(".");
             if (li != null)
             {
@@ -113,6 +138,18 @@ internal class MainViewModel : IDisposable
             Subtitle = string.Empty,
             Icon = app.Icon,
             Command = new AnonymousCommand(() => app.SwitchToCommand.Execute(null))
+        };
+
+    }
+
+    private TaskbarItemViewModel ListItemToDeskband(IListItem item)
+    {
+        return new TaskbarItemViewModel()
+        {
+            Title = item.Title,
+            Subtitle = item.Subtitle,
+            Icon = new(item.Icon.Dark.Icon), // TODO! hack
+            Command = item.Command,
         };
 
     }
@@ -184,5 +221,41 @@ public partial class ClockTaskBand : TaskbarItemViewModel
             Subtitle = DateTime.Now.ToString("ddd dd MMM");
 
         });
+    }
+}
+
+public partial class VirtualDesktopsListPage : ListPage
+{
+    public static readonly IconInfo CheckboxEmptyIcon = new("\uE739");
+    public static readonly IconInfo CheckboxFillIcon = new("\uE73B");
+    public static readonly IconInfo ToggleFilledIcon = new("\uEC11");
+    public static readonly IconInfo StatusCircleIcon = new("\uEA81");
+    public static readonly IconInfo CircleFillBadge12Icon = new("\uEDB0");
+
+    public VirtualDesktopsListPage()
+    {
+        VirtualDesktop.CurrentChanged += (_, args) => RaiseItemsChanged();
+        VirtualDesktop.Created += (_, desktop) => RaiseItemsChanged();
+    }
+
+    public override IListItem[] GetItems()
+    {
+        VirtualDesktop[] desktops = VirtualDesktop.GetDesktops();
+        List<IListItem> items = new(desktops.Length);
+        foreach (VirtualDesktop desktop in desktops)
+        {
+            items.Add(DesktopToItem(desktop));
+        }
+        return items.ToArray();
+    }
+
+    private IListItem DesktopToItem(VirtualDesktop desktop)
+    {
+        bool isCurrent = desktop == VirtualDesktop.Current;
+        return new ListItem(new AnonymousCommand(() => desktop.Switch()) { Name = string.Empty })
+        {
+            // Icon = isCurrent ? CheckboxFillIcon : CheckboxEmptyIcon
+            Icon = isCurrent ? ToggleFilledIcon : CircleFillBadge12Icon
+        };
     }
 }

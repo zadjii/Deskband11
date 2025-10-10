@@ -449,7 +449,8 @@ namespace PowerDock
             }
 
 
-
+            // This is needed to update the position when the work area changes. 
+            // (notably, when the user toggles auto-hide taskbars)
             if (msg == _callbackMessageId)
             {
                 if (wParam.Value == PInvoke.ABN_POSCHANGED)
@@ -457,7 +458,6 @@ namespace PowerDock
                     UpdateWindowPosition();
                 }
             }
-            //}
 
 
 

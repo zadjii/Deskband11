@@ -20,5 +20,7 @@
     <!-- Other packages -->
     <PackageVersion Include="System.Drawing.Common" Version="9.0.8" />
     <PackageVersion Include="WinUIEx" Version="2.8.0" />
+    
+    <PackageVersion Include="Slions.VirtualDesktop" Version="6.9.2" />
   </ItemGroup>
 </Project>

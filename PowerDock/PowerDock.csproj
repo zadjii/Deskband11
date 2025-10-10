@@ -46,7 +46,7 @@
     <PackageReference Include="CommunityToolkit.Common" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="System.Drawing.Common" />
-
+    <PackageReference Include="Slions.VirtualDesktop" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utils\Utils.csproj" />
