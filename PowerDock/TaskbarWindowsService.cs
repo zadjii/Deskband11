@@ -247,21 +247,45 @@ namespace PowerDock
         public static IntPtr GetWindowIcon(IntPtr hWnd)
         {
             const int ICON_SMALL2 = 2;
+            const uint TIMEOUT_MS = 20;
+            const uint SMTO_ABORTIFHUNG = 0x0002;
 
-            IntPtr hIcon = SendMessage(hWnd, WM_GETICON, ICON_SMALL2, IntPtr.Zero);
-            if (hIcon == IntPtr.Zero)
+            IntPtr hIcon = IntPtr.Zero;
+            UIntPtr result;
+
+            // Try ICON_SMALL2
+            if (SendMessageTimeout(hWnd, WM_GETICON, ICON_SMALL2, IntPtr.Zero, 
+                SMTO_ABORTIFHUNG, TIMEOUT_MS, out result) != IntPtr.Zero)
             {
-                hIcon = SendMessage(hWnd, WM_GETICON, ICON_SMALL, IntPtr.Zero);
+                hIcon = (IntPtr)result;
             }
 
-            if (hIcon == IntPtr.Zero)
+            // Try ICON_SMALL
+            if (hIcon == IntPtr.Zero && 
+                SendMessageTimeout(hWnd, WM_GETICON, ICON_SMALL, IntPtr.Zero, 
+                SMTO_ABORTIFHUNG, TIMEOUT_MS, out result) != IntPtr.Zero)
             {
-                hIcon = SendMessage(hWnd, WM_GETICON, ICON_BIG, IntPtr.Zero);
+                hIcon = (IntPtr)result;
             }
 
+            // Try ICON_BIG
+            if (hIcon == IntPtr.Zero && 
+                SendMessageTimeout(hWnd, WM_GETICON, ICON_BIG, IntPtr.Zero, 
+                SMTO_ABORTIFHUNG, TIMEOUT_MS, out result) != IntPtr.Zero)
+            {
+                hIcon = (IntPtr)result;
+            }
+
+            // Try GetClassLongPtr (this doesn't send a message, so no timeout needed)
             if (hIcon == IntPtr.Zero)
             {
                 hIcon = GetClassLongPtr(hWnd, GCL_HICONSM);
+            }
+
+            // If still no icon, use default application icon
+            if (hIcon == IntPtr.Zero)
+            {
+                hIcon = LoadIcon(IntPtr.Zero, IDI_APPLICATION);
             }
 
             return hIcon;
@@ -315,9 +339,24 @@ namespace PowerDock
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessageTimeout(
+            IntPtr hWnd,
+            uint Msg,
+            int wParam,
+            IntPtr lParam,
+            uint fuFlags,
+            uint uTimeout,
+            out UIntPtr lpdwResult);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
+
         private const uint WM_GETICON = 0x007F;
         private const int ICON_SMALL = 0;
         private const int ICON_BIG = 1;
+        private static readonly IntPtr IDI_APPLICATION = new IntPtr(32512);
 
         [DllImport("user32.dll", EntryPoint = "GetClassLongPtr", SetLastError = true)]
         private static extern IntPtr GetClassLongPtr(IntPtr hWnd, int nIndex);
