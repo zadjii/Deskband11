@@ -450,12 +450,13 @@ namespace PowerDock
 
 
 
-            //if (msg == _callbackMessageId)
-            //{
-            //    if (wParam.Value == ABN_POSCHANGED)
-            //    {
-            //        UpdateWindowPosition();
-            //    }
+            if (msg == _callbackMessageId)
+            {
+                if (wParam.Value == PInvoke.ABN_POSCHANGED)
+                {
+                    UpdateWindowPosition();
+                }
+            }
             //}
 
 
