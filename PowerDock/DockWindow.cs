@@ -6,6 +6,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System.Runtime.InteropServices;
+using System.Text;
 using Windows.UI;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -17,7 +18,7 @@ using WinUIEx;
 
 namespace PowerDock
 {
-    public sealed partial class DockWindow : WindowEx, IRecipient<OpenSettingsMessage>
+    public sealed partial class DockWindow : WindowEx, IRecipient<OpenSettingsMessage>, IRecipient<BringToTopMessage>
     {
         private readonly Settings _settings;
         private HWND _hwnd = HWND.Null;
@@ -57,6 +58,7 @@ namespace PowerDock
             this.Activated += MainWindow_Activated;
             this.Closed += DockWindow_Closed;
             WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
+            WeakReferenceMessenger.Default.Register<BringToTopMessage>(this);
 
             _hwnd = GetWindowHandle(this);
             // Subclass the window to intercept messages
@@ -83,6 +85,7 @@ namespace PowerDock
             style &= ~WS_MAXIMIZEBOX; // Remove WS_MAXIMIZEBOX
             PInvoke.SetWindowLong(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE, (int)style);
 
+            ShowDesktop.AddHook(this);
 
             UpdateSettings();
         }
@@ -340,11 +343,11 @@ namespace PowerDock
 
         private LRESULT CustomWndProc(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam)
         {
-            // if it's a WM_ACTIVATEAPP, then send us to topmost
-            if (msg == WM_ACTIVATEAPP)
-            {
-                PInvoke.SetWindowPos(hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
-            }
+            //// if it's a WM_ACTIVATEAPP, then send us to topmost
+            //if (msg == WM_ACTIVATEAPP)
+            //{
+            //    PInvoke.SetWindowPos(hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+            //}
 
 
             // Intercept WM_SYSCOMMAND to prevent minimize and maximize
@@ -475,6 +478,15 @@ namespace PowerDock
         public void RefreshSettings()
         {
             UpdateSettings();
+        }
+
+        void IRecipient<BringToTopMessage>.Receive(BringToTopMessage message)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                PInvoke.SetWindowPos(_hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+
+            });
         }
 
         private static readonly uint ABM_NEW = 0x0;
@@ -629,4 +641,95 @@ namespace PowerDock
         }
     }
 
+
+    internal static class NativeMethods
+    {
+        [DllImport("user32.dll")]
+        internal static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, ShowDesktop.WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        internal static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
+        [DllImport("user32.dll")]
+        internal static extern int GetClassName(IntPtr hwnd, StringBuilder name, int count);
+    }
+
+    // Thank you to https://stackoverflow.com/a/35422795/1481137
+    internal static class ShowDesktop
+    {
+        private const uint WINEVENT_OUTOFCONTEXT = 0u;
+        private const uint EVENT_SYSTEM_FOREGROUND = 3u;
+
+        private const string WORKERW = "WorkerW";
+        private const string PROGMAN = "Progman";
+
+        public static void AddHook(Window window)
+        {
+            if (IsHooked)
+            {
+                return;
+            }
+
+            IsHooked = true;
+
+            _delegate = new WinEventDelegate(WinEventHook);
+            _hookIntPtr = NativeMethods.SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, _delegate, 0, 0, WINEVENT_OUTOFCONTEXT);
+            _window = window;
+        }
+
+        public static void RemoveHook()
+        {
+            if (!IsHooked)
+            {
+                return;
+            }
+
+            IsHooked = false;
+
+            NativeMethods.UnhookWinEvent(_hookIntPtr.Value);
+
+            _delegate = null;
+            _hookIntPtr = null;
+            _window = null;
+        }
+
+        private static string GetWindowClass(IntPtr hwnd)
+        {
+            StringBuilder _sb = new(32);
+            NativeMethods.GetClassName(hwnd, _sb, _sb.Capacity);
+            return _sb.ToString();
+        }
+
+        internal delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+
+        private static void WinEventHook(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+        {
+            if (eventType == EVENT_SYSTEM_FOREGROUND)
+            {
+                string _class = GetWindowClass(hwnd);
+
+                if (string.Equals(_class, WORKERW, StringComparison.Ordinal) || string.Equals(_class, PROGMAN, StringComparison.Ordinal))
+                {
+                    //_window.SetIsAlwaysOnTop = true;
+                    //HWND h = (HWND)_window.AppWindow.Id.GetWindowHandle();
+                    // PInvoke.SetWindowPos(h, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+                    WeakReferenceMessenger.Default.Send<BringToTopMessage>();
+                }
+                else
+                {
+                    //_window.Topmost = false;
+                }
+            }
+        }
+
+        public static bool IsHooked { get; private set; } = false;
+
+        private static IntPtr? _hookIntPtr { get; set; }
+
+        private static WinEventDelegate? _delegate { get; set; }
+
+        private static Window? _window { get; set; }
+    }
+
+    record BringToTopMessage();
 }
