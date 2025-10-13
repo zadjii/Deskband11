@@ -343,11 +343,20 @@ namespace PowerDock
 
         private LRESULT CustomWndProc(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam)
         {
-            //// if it's a WM_ACTIVATEAPP, then send us to topmost
-            //if (msg == WM_ACTIVATEAPP)
-            //{
-            //    PInvoke.SetWindowPos(hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
-            //}
+            // check settings changed
+            if (msg == WM_SETTINGCHANGE)
+            {
+                //    PInvoke.SetWindowPos(hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+
+                if (IsWindowFullscreen())
+                {
+                    this.Hide();
+                }
+                else
+                {
+                    this.Show();
+                }
+            }
 
 
             // Intercept WM_SYSCOMMAND to prevent minimize and maximize
@@ -444,6 +453,8 @@ namespace PowerDock
             //    }
             //}
 
+
+
             // Handle WM_GETMINMAXINFO to control window size limits
             if (msg == WM_GETMINMAXINFO)
             {
@@ -489,6 +500,23 @@ namespace PowerDock
             });
         }
 
+        public static bool IsWindowFullscreen()
+        {
+
+            // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ne-shellapi-query_user_notification_state
+            if (Marshal.GetExceptionForHR(PInvoke.SHQueryUserNotificationState(out QUERY_USER_NOTIFICATION_STATE state)) is null)
+            {
+                if (state == QUERY_USER_NOTIFICATION_STATE.QUNS_RUNNING_D3D_FULL_SCREEN ||
+                    state == QUERY_USER_NOTIFICATION_STATE.QUNS_BUSY ||
+                    state == QUERY_USER_NOTIFICATION_STATE.QUNS_PRESENTATION_MODE)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static readonly uint ABM_NEW = 0x0;
         private static readonly uint ABM_REMOVE = 0x1;
         private static readonly uint ABM_QUERYPOS = 0x2;
@@ -514,6 +542,10 @@ namespace PowerDock
         private const int SC_MINIMIZE = 0xF020;
         private const int SC_MAXIMIZE = 0xF030;
         private const int SC_RESTORE = 0xF120;
+
+
+        private const int WM_DISPLAYCHANGE = 0x007E;
+        private const int WM_SETTINGCHANGE = 0x001A;
 
         // Window style constants
         private const uint WS_MINIMIZEBOX = 0x00020000;
