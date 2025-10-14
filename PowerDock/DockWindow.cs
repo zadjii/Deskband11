@@ -18,7 +18,7 @@ using WinUIEx;
 
 namespace PowerDock
 {
-    public sealed partial class DockWindow : WindowEx, IRecipient<OpenSettingsMessage>, IRecipient<BringToTopMessage>
+    public sealed partial class DockWindow : WindowEx, IRecipient<OpenSettingsMessage>, IRecipient<BringToTopMessage>, IRecipient<QuitMessage>
     {
         private readonly Settings _settings;
         private HWND _hwnd = HWND.Null;
@@ -59,6 +59,7 @@ namespace PowerDock
             this.Closed += DockWindow_Closed;
             WeakReferenceMessenger.Default.Register<OpenSettingsMessage>(this);
             WeakReferenceMessenger.Default.Register<BringToTopMessage>(this);
+            WeakReferenceMessenger.Default.Register<QuitMessage>(this);
 
             _hwnd = GetWindowHandle(this);
             // Subclass the window to intercept messages
@@ -484,6 +485,11 @@ namespace PowerDock
             // Create and show the settings window
             DockSettingsWindow settingsWindow = new(this, _settings);
             settingsWindow.Activate();
+        }
+        public void Receive(QuitMessage message)
+        {
+            DestroyAppBar(_hwnd);
+            this.Close();
         }
 
         public void RefreshSettings()

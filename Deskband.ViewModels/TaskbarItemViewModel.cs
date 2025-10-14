@@ -91,6 +91,8 @@ namespace Deskband.ViewModels
         {
             (Command as IInvokableCommand)?.Invoke(null);
         }
+
+        public ObservableCollection<TaskbarItemViewModel> ContextMenu { get; set; } = new();
     }
 
     public partial class CommandViewModel : ObservableObject, ICommand

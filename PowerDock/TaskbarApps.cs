@@ -93,26 +93,27 @@ internal class MainViewModel : IDisposable
         foreach (Microsoft.CommandPalette.Extensions.IListItem item in items)
         {
             string title = _settings.ShowAppTitles ? item.Title : string.Empty;
-            WindowWalkerListItem? li = item as WindowWalkerListItem;
-            IconInfo icon = new(".");
-            if (li != null)
-            {
-                nint hwnd = li.Window?.Hwnd ?? IntPtr.Zero;
-                nint hIcon = TaskbarWindowsService.GetWindowIcon(hwnd);
-                IRandomAccessStream? iconStream = hIcon != IntPtr.Zero ? TaskbarWindowsService.ConvertIconToStream(hIcon) : null;
-                if (iconStream != null)
-                {
-                    icon = IconInfo.FromStream(iconStream);
-                }
-            }
+            WindowWalkerListItem li = (item as WindowWalkerListItem)!;
+            TaskbarItemViewModel tvi = ListItemToDeskband(li);
 
-            TaskbarItemViewModel tvi = new()
+            IconInfo icon = new(".");
+            nint hwnd = li.Window?.Hwnd ?? IntPtr.Zero;
+            nint hIcon = TaskbarWindowsService.GetWindowIcon(hwnd);
+            IRandomAccessStream? iconStream = hIcon != IntPtr.Zero ? TaskbarWindowsService.ConvertIconToStream(hIcon) : null;
+            if (iconStream != null)
             {
-                Title = title,
-                Subtitle = string.Empty,
-                Icon = icon, // new("."),// ((Command)item.Command).Icon,
-                Command = item.Command
-            };
+                icon = IconInfo.FromStream(iconStream);
+            }
+            tvi.Icon = icon;
+            tvi.Subtitle = string.Empty;
+
+            //TaskbarItemViewModel tvi = new()
+            //{
+            //    Title = title,
+            //    Subtitle = string.Empty,
+            //    Icon = icon, // new("."),// ((Command)item.Command).Icon,
+            //    Command = item.Command
+            //};
             //var commandIcon = (item as)
             //Command? switchToCommand = item.Command as Command;
             //if (switchToCommand != null)
@@ -156,15 +157,50 @@ internal class MainViewModel : IDisposable
 
     }
 
-    private TaskbarItemViewModel ListItemToDeskband(IListItem item)
+    public static TaskbarItemViewModel ListItemToDeskband(IListItem item)
     {
+        IEnumerable<TaskbarItemViewModel> contextMenu = item.MoreCommands.Select(i => ContextItemToDeskband(i)).Where(i => i != null).Select(i => i!);
+        IconInfo icon = new(string.Empty);
+        if (item.Icon is IconInfo ii)
+        {
+            icon = ii;
+        }
         return new TaskbarItemViewModel()
         {
             Title = item.Title,
             Subtitle = item.Subtitle,
-            Icon = new(item.Icon.Dark.Icon), // TODO! hack
+            Icon = icon, // TODO! hack
             Command = item.Command,
+            ContextMenu = new(contextMenu)
         };
+
+    }
+    public static TaskbarItemViewModel? ContextItemToDeskband(IContextItem context)
+    {
+        if (context is ICommandContextItem item)
+        {
+            IEnumerable<TaskbarItemViewModel> contextMenu = item.MoreCommands.Select(i => ContextItemToDeskband(i)).Where(i => i != null).Select(i => i!);
+            IconInfo icon = new(string.Empty);
+            if (item.Icon is IconInfo ii)
+            {
+                icon = ii;
+            }
+            else if (item.Command.Icon is IconInfo ii2)
+            {
+                icon = ii2;
+            }
+            return new TaskbarItemViewModel()
+            {
+                Title = item.Title,
+                Subtitle = item.Subtitle,
+                Icon = icon, // TODO! hack
+                Command = item.Command,
+                ContextMenu = new(contextMenu)
+            };
+
+        }
+
+        return null;
 
     }
 
@@ -194,6 +230,12 @@ public partial class SettingsTaskBand : TaskbarItemViewModel
     {
         Command = new AnonymousCommand(() => WeakReferenceMessenger.Default.Send<OpenSettingsMessage>(new()));
         Icon = new IconInfo("\uE713");
+
+        AnonymousCommand postQuitCommand = new(() => { WeakReferenceMessenger.Default.Send<QuitMessage>(); }) { Name = "Quit" };
+        ListItem quitLi = new(postQuitCommand);
+        TaskbarItemViewModel quitTvi = MainViewModel.ListItemToDeskband(quitLi);
+
+        this.ContextMenu = new([quitTvi]);
     }
 }
 

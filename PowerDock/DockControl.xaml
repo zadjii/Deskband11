@@ -175,6 +175,48 @@
                             </ItemsRepeater.Layout>
                         </ItemsRepeater>
                     </Grid>
+
+                    <Button.ContextFlyout>
+                        <Flyout Placement="TopEdgeAlignedLeft" ShouldConstrainToRootBounds="False">
+                            <!--  More correctly, this ItemsControl should be a list view, but i ain't got time to write more templates  -->
+                            <ItemsControl
+                                x:Name="ItemsFlyout"
+                                Grid.Column="0"
+                                MinWidth="200"
+                                MaxWidth="380"
+                                Margin="-8"
+                                Padding="0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="Blue"
+                                BorderBrush="Blue"
+                                BorderThickness="1"
+                                IsTabStop="False"
+                                ItemTemplate="{StaticResource DeskbandTemplate}"
+                                ItemsSource="{x:Bind ContextMenu, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel
+                                            HorizontalAlignment="Left"
+                                            Orientation="Vertical"
+                                            Spacing="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                            <!--<ListView
+                                MinWidth="200"
+                                MaxWidth="380"
+                                Margin="-8"
+                                Padding="-8"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                BorderThickness="1"
+                                IsTabStop="False"
+                                ItemTemplate="{StaticResource DeskbandTemplate}"
+                                ItemsSource="{x:Bind ContextMenu, Mode=OneWay}" />-->
+                        </Flyout>
+
+                    </Button.ContextFlyout>
                 </Button>
             </DataTemplate>
 
@@ -189,8 +231,11 @@
             <ColumnDefinition x:Name="EndColumn" Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <!-- EXPERIMENT: Try to add a shadow to the bottom. I didn't love how it actually turned out.  -->
-        <Rectangle Grid.ColumnSpan="3" Margin="-16,0" Visibility="Collapsed">
+        <!--  EXPERIMENT: Try to add a shadow to the bottom. I didn't love how it actually turned out.  -->
+        <Rectangle
+            Grid.ColumnSpan="3"
+            Margin="-16,0"
+            Visibility="Collapsed">
             <Rectangle.Fill>
                 <LinearGradientBrush MappingMode="RelativeToBoundingBox" Opacity="1" StartPoint=".5,1" EndPoint=".5,0.55">
                     <LinearGradientBrush.GradientStops>
