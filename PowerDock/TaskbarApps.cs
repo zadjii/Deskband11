@@ -23,9 +23,11 @@ internal class MainViewModel : IDisposable
     public ObservableCollection<TaskbarItemViewModel> StartItems { get; } = new();
     public ObservableCollection<TaskbarItemViewModel> EndItems { get; } = new();
 
+    private CmdPalStartListPage _cmdPal;
     private WindowWalkerListPage _ww;
     private VirtualDesktopsListPage _vd;
 
+    private TaskbarItemViewModel _cmdPalBand;
     private TaskbarItemViewModel _settingsBand;
     private TaskbarItemViewModel _clockBand;
     private TaskbarItemViewModel _audioBand;
@@ -38,6 +40,8 @@ internal class MainViewModel : IDisposable
 
         _taskbarWindows.Apps.CollectionChanged += Apps_CollectionChanged;
 
+        _cmdPal = new();
+        _cmdPalBand = ListItemToDeskband(_cmdPal.GetItems()[0]);
         _settingsBand = new SettingsTaskBand();
         _clockBand = new ClockTaskBand();
         _audioBand = new AudioBand();
@@ -83,6 +87,8 @@ internal class MainViewModel : IDisposable
     private void RegenWindows()
     {
         StartItems.Clear();
+        StartItems.Add(_cmdPalBand);
+
         Microsoft.CommandPalette.Extensions.IListItem[] items = _ww.GetItems();
         foreach (Microsoft.CommandPalette.Extensions.IListItem item in items)
         {
@@ -265,5 +271,32 @@ public partial class VirtualDesktopsListPage : ListPage
             // Icon = isCurrent ? CheckboxFillIcon : CheckboxEmptyIcon
             Icon = isCurrent ? ToggleFilledIcon : CircleFillBadge12Icon
         };
+    }
+}
+
+public partial class CmdPalStartListPage : ListPage
+{
+    private InvokableCommand _openCmdPal;
+    private ListItem _listItem;
+
+    public CmdPalStartListPage()
+    {
+
+        _openCmdPal = new AnonymousCommand(() =>
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "x-cmdpal://",
+                UseShellExecute = true
+            });
+        })
+        { Name = string.Empty };
+
+        _listItem = new ListItem(_openCmdPal) { Icon = new IconInfo("https://raw.githubusercontent.com/microsoft/PowerToys/refs/heads/main/src/modules/cmdpal/Microsoft.CmdPal.UI/Assets/Stable/icon.svg") };
+    }
+
+    public override IListItem[] GetItems()
+    {
+        return new[] { _listItem };
     }
 }

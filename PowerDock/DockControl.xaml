@@ -122,8 +122,8 @@
                             Visibility="{x:Bind HasIcon, Mode=OneWay}">
                             <cpcontrols:IconBox
                                 x:Name="IconBorder"
-                                MaxWidth="16"
                                 Height="16"
+                                MaxWidth="16"
                                 VerticalAlignment="Center"
                                 AutomationProperties.AccessibilityView="Raw"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -189,6 +189,18 @@
             <ColumnDefinition x:Name="EndColumn" Width="Auto" />
         </Grid.ColumnDefinitions>
 
+        <!-- EXPERIMENT: Try to add a shadow to the bottom. I didn't love how it actually turned out.  -->
+        <Rectangle Grid.ColumnSpan="3" Margin="-16,0" Visibility="Collapsed">
+            <Rectangle.Fill>
+                <LinearGradientBrush MappingMode="RelativeToBoundingBox" Opacity="1" StartPoint=".5,1" EndPoint=".5,0.55">
+                    <LinearGradientBrush.GradientStops>
+                        <GradientStop Offset="0" Color="#60000000" />
+                        <GradientStop Offset="1" Color="#0000" />
+                    </LinearGradientBrush.GradientStops>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
         <ScrollViewer
             Grid.Column="0"
             HorizontalAlignment="Stretch"
@@ -246,4 +258,5 @@
 
         </ItemsRepeater>
     </Grid>
+
 </UserControl>
