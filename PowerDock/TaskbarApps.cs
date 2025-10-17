@@ -2,11 +2,13 @@
 using Deskband.ViewModels;
 using DeskBand.ViewModels.Messages;
 using DeskBand11;
+using ManagedCommon;
 using Microsoft.CmdPal.Ext.WindowWalker;
 using Microsoft.CmdPal.Ext.WindowWalker.Helpers;
 using Microsoft.CmdPal.Ext.WindowWalker.Pages;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
+using Microsoft.UI.Dispatching;
 using System.Collections.ObjectModel;
 using Windows.Storage.Streams;
 using WindowsDesktop;
@@ -19,6 +21,7 @@ internal class MainViewModel : IDisposable
     private TaskbarWindowsService _taskbarWindows;
     private Settings _settings;
     private Microsoft.UI.Dispatching.DispatcherQueue dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+    private DispatcherQueue _updateWindowsQueue = DispatcherQueueController.CreateOnDedicatedThread().DispatcherQueue;
 
     public ObservableCollection<TaskbarItemViewModel> StartItems { get; } = new();
     public ObservableCollection<TaskbarItemViewModel> EndItems { get; } = new();
@@ -48,23 +51,26 @@ internal class MainViewModel : IDisposable
 
         SettingsManager.Instance.InMruOrder = false;
         SettingsManager.Instance.ResultsFromVisibleDesktopOnly = true;
+
         _ww = new WindowWalkerListPage();
         _vd = new();
-        _ww.ItemsChanged += WindowsChanged;
-        _vd.ItemsChanged += DesktopsChanged; ;
+
+        _vd.ItemsChanged += DesktopsChanged;
+
         RegenWindows();
         RegenEndItems();
     }
 
     private void DesktopsChanged(object sender, IItemsChangedEventArgs args)
     {
-        dispatcherQueue.TryEnqueue(() => RegenEndItems());
-
+        Logger.LogDebug("DesktopsChanged");
+        RegenWindows();
+        RegenEndItems();
     }
 
     private void RegenEndItems()
     {
-
+        Logger.LogDebug("RegenEndItems");
         List<TaskbarItemViewModel> newItems = new();
 
         IListItem[] desktopItems = _vd.GetItems();
@@ -77,19 +83,29 @@ internal class MainViewModel : IDisposable
         newItems.Add(_clockBand);
         newItems.Add(_settingsBand);
 
-        ListHelpers.InPlaceUpdateList(EndItems, newItems);
+        dispatcherQueue.TryEnqueue(() =>
+        {
+            ListHelpers.InPlaceUpdateList(EndItems, newItems);
+        });
     }
 
-    private void WindowsChanged(object sender, Microsoft.CommandPalette.Extensions.IItemsChangedEventArgs args)
-    {
-    }
 
     private void RegenWindows()
     {
-        StartItems.Clear();
-        StartItems.Add(_cmdPalBand);
+        Logger.LogDebug("RegenWindows");
+        _updateWindowsQueue.TryEnqueue(() => RegenWindowsInBackground());
+        //Task bg = Task.Run(RegenWindowsInBackground);
+    }
 
+    private void RegenWindowsInBackground()
+    {
+        Logger.LogDebug("RegenWindowsInBackground");
+
+        List<TaskbarItemViewModel> results = new();
+
+        results.Add(_cmdPalBand);
         Microsoft.CommandPalette.Extensions.IListItem[] items = _ww.GetItems();
+        Logger.LogDebug($"Found {items.Length} windows");
         foreach (Microsoft.CommandPalette.Extensions.IListItem item in items)
         {
             string title = _settings.ShowAppTitles ? item.Title : string.Empty;
@@ -99,7 +115,17 @@ internal class MainViewModel : IDisposable
             IconInfo icon = new(".");
             nint hwnd = li.Window?.Hwnd ?? IntPtr.Zero;
             nint hIcon = TaskbarWindowsService.GetWindowIcon(hwnd);
-            IRandomAccessStream? iconStream = hIcon != IntPtr.Zero ? TaskbarWindowsService.ConvertIconToStream(hIcon) : null;
+
+            IRandomAccessStream? iconStream = null;
+
+            try
+            {
+                iconStream = hIcon != IntPtr.Zero ?
+                    TaskbarWindowsService.ConvertIconToStream(hIcon) :
+                    null;
+            }
+            catch { }
+
             if (iconStream != null)
             {
                 icon = IconInfo.FromStream(iconStream);
@@ -107,54 +133,28 @@ internal class MainViewModel : IDisposable
             tvi.Icon = icon;
             tvi.Subtitle = string.Empty;
 
-            //TaskbarItemViewModel tvi = new()
-            //{
-            //    Title = title,
-            //    Subtitle = string.Empty,
-            //    Icon = icon, // new("."),// ((Command)item.Command).Icon,
-            //    Command = item.Command
-            //};
-            //var commandIcon = (item as)
-            //Command? switchToCommand = item.Command as Command;
-            //if (switchToCommand != null)
-            //{
-            //    tvi.Icon = switchToCommand.Icon;
-            //}
-            StartItems.Add(tvi);
+            results.Add(tvi);
         }
+
+        this.dispatcherQueue.TryEnqueue(() =>
+        {
+            Logger.LogDebug("Updating window items on UI thread");
+            int beforeCount = StartItems.Count;
+            int afterCount = results.Count;
+            ListHelpers.InPlaceUpdateList(StartItems, results, out List<TaskbarItemViewModel>? removed);
+            Logger.LogDebug($"({beforeCount}) -> ({afterCount}), Removed {removed.Count} items");
+
+        });
     }
 
     private void Apps_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-        // RegenerateApps();
+        Logger.LogDebug("Apps_CollectionChanged");
         RegenWindows();
     }
     public void UpdateSettings()
     {
-        // RegenerateApps();
         RegenWindows();
-    }
-    private void RegenerateApps()
-    {
-        StartItems.Clear();
-        IEnumerable<TaskbarItemViewModel> appBands = _taskbarWindows.Apps.Select(AppToDeskband);
-        foreach (TaskbarItemViewModel appBand in appBands)
-        {
-            StartItems.Add(appBand);
-        }
-    }
-
-
-    private TaskbarItemViewModel AppToDeskband(TaskbarApp app)
-    {
-        return new TaskbarItemViewModel()
-        {
-            Title = _settings.ShowAppTitles ? app.Title : string.Empty,
-            Subtitle = string.Empty,
-            Icon = app.Icon,
-            Command = new AnonymousCommand(() => app.SwitchToCommand.Execute(null))
-        };
-
     }
 
     public static TaskbarItemViewModel ListItemToDeskband(IListItem item)
@@ -296,6 +296,7 @@ public partial class VirtualDesktopsListPage : ListPage
 
     public override IListItem[] GetItems()
     {
+        Logger.LogDebug("VirtualDesktopsListPage.GetItems");
         VirtualDesktop[] desktops = VirtualDesktop.GetDesktops();
         List<IListItem> items = new(desktops.Length);
         foreach (VirtualDesktop desktop in desktops)
@@ -308,12 +309,33 @@ public partial class VirtualDesktopsListPage : ListPage
     private IListItem DesktopToItem(VirtualDesktop desktop)
     {
         bool isCurrent = desktop == VirtualDesktop.Current;
-        return new ListItem(new AnonymousCommand(() => desktop.Switch()) { Name = string.Empty })
+        return new ListItem(new SwitchToDesktopCommand(desktop))
         {
             // Icon = isCurrent ? CheckboxFillIcon : CheckboxEmptyIcon
             Icon = isCurrent ? ToggleFilledIcon : CircleFillBadge12Icon
         };
     }
+
+    private sealed partial class SwitchToDesktopCommand(VirtualDesktop desktop) : InvokableCommand
+    {
+        public VirtualDesktop Desktop { get; } = desktop;
+        public override string Name => string.Empty;
+        public override ICommandResult Invoke()
+        {
+            try
+            {
+                Logger.LogDebug($"Switching to '{Desktop.ToString()}'");
+                desktop.Switch();
+                Logger.LogDebug($"...done");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError("SwitchToDesktopCommand invoke", e);
+            }
+            return CommandResult.Dismiss();
+        }
+    }
+
 }
 
 public partial class CmdPalStartListPage : ListPage
@@ -323,7 +345,6 @@ public partial class CmdPalStartListPage : ListPage
 
     public CmdPalStartListPage()
     {
-
         _openCmdPal = new AnonymousCommand(() =>
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo

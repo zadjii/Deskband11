@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DeskBand.ViewModels.Messages;
+using ManagedCommon;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
@@ -40,6 +41,9 @@ namespace PowerDock
 
         public DockWindow()
         {
+            Logger.InitializeLogger("PowerDock\\Logs");
+            Logger.LogDebug(Logger.LogDirectoryPath("PowerDock\\Logs"));
+
             _settings = DockSettingsWindow.LoadUserSettings();
 
             ViewModel = new MainViewModel(_settings);
@@ -260,6 +264,8 @@ namespace PowerDock
 
         private void UpdateWindowPosition()
         {
+            Logger.LogDebug("UpdateWindowPosition");
+
             uint dpi = PInvoke.GetDpiForWindow(_hwnd);
 
             int screenWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN);
@@ -274,6 +280,8 @@ namespace PowerDock
             // Query and set position
             PInvoke.SHAppBarMessage(ABM_QUERYPOS, ref _appBarData);
             PInvoke.SHAppBarMessage(ABM_SETPOS, ref _appBarData);
+            _appBarData.lParam = ABS_ALWAYSONTOP;
+            PInvoke.SHAppBarMessage(ABM_SETSTATE, ref _appBarData);
 
             // Account for system borders when moving the window
             // Adjust position to account for window frame/border
@@ -293,6 +301,7 @@ namespace PowerDock
 
         private void UpdateAppBarDataForEdge(Side side, DockSize size, double scaleFactor)
         {
+            Logger.LogDebug("UpdateAppBarDataForEdge");
             double horizontalHeightDips = SettingsToViews.HeightForSize(size);
             double verticalWidthDips = SettingsToViews.WidthForSize(size);
             int screenHeight = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN);
@@ -348,8 +357,11 @@ namespace PowerDock
             if (msg == WM_SETTINGCHANGE)
             {
                 //    PInvoke.SetWindowPos(hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+                bool isFullscreen = IsWindowFullscreen();
 
-                if (IsWindowFullscreen())
+                Logger.LogDebug($"WM_SETTINGCHANGE ({isFullscreen})");
+
+                if (isFullscreen)
                 {
                     this.Hide();
                 }
@@ -429,33 +441,6 @@ namespace PowerDock
                 }
             }
 
-            //// Handle keyboard shortcuts that could minimize/maximize
-            //if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN)
-            //{
-            //    int vkCode = (int)wParam.Value;
-
-            //    // Check for Windows key combinations that minimize/maximize
-            //    if (PInvoke.GetKeyState(0x5B) < 0) // Left Windows key is pressed
-            //    {
-            //        if (vkCode == VK_DOWN || vkCode == VK_UP || vkCode == VK_F9)
-            //        {
-            //            // Block Windows+Down (minimize), Windows+Up (maximize), Windows+F9 (minimize)
-            //            return new LRESULT(0);
-            //        }
-            //    }
-
-            //    if (PInvoke.GetKeyState(0x5C) < 0) // Right Windows key is pressed
-            //    {
-            //        if (vkCode == VK_DOWN || vkCode == VK_UP || vkCode == VK_F9)
-            //        {
-            //            // Block Windows+Down (minimize), Windows+Up (maximize), Windows+F9 (minimize)
-            //            return new LRESULT(0);
-            //        }
-            //    }
-            //}
-
-
-
             // Handle WM_GETMINMAXINFO to control window size limits
             if (msg == WM_GETMINMAXINFO)
             {
@@ -463,7 +448,7 @@ namespace PowerDock
                 // For now, let it pass through but we could restrict max size
             }
 
-
+            // Handle the AppBarMessage message
             // This is needed to update the position when the work area changes. 
             // (notably, when the user toggles auto-hide taskbars)
             if (msg == _callbackMessageId)
@@ -492,23 +477,21 @@ namespace PowerDock
             this.Close();
         }
 
-        public void RefreshSettings()
-        {
-            UpdateSettings();
-        }
-
         void IRecipient<BringToTopMessage>.Receive(BringToTopMessage message)
         {
             DispatcherQueue.TryEnqueue(() =>
             {
                 PInvoke.SetWindowPos(_hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
-
             });
+        }
+
+        public void RefreshSettings()
+        {
+            UpdateSettings();
         }
 
         public static bool IsWindowFullscreen()
         {
-
             // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ne-shellapi-query_user_notification_state
             if (Marshal.GetExceptionForHR(PInvoke.SHQueryUserNotificationState(out QUERY_USER_NOTIFICATION_STATE state)) is null)
             {
@@ -528,11 +511,15 @@ namespace PowerDock
         private static readonly uint ABM_QUERYPOS = 0x2;
         private static readonly uint ABM_SETPOS = 0x3;
         private static readonly uint ABM_GETSTATE = 0x4;
+        private static readonly uint ABM_SETSTATE = 0xA;
 
         public static readonly uint ABE_LEFT = 0x0;
         public static readonly uint ABE_TOP = 0x1;
         public static readonly uint ABE_RIGHT = 0x2;
         public static readonly uint ABE_BOTTOM = 0x3;
+
+        public static readonly nint ABS_AUTOHIDE = 0x1;
+        public static readonly nint ABS_ALWAYSONTOP = 0x2;
 
         // Window message constants
         private const int WM_SYSCOMMAND = 0x0112;
@@ -748,14 +735,8 @@ namespace PowerDock
 
                 if (string.Equals(_class, WORKERW, StringComparison.Ordinal) || string.Equals(_class, PROGMAN, StringComparison.Ordinal))
                 {
-                    //_window.SetIsAlwaysOnTop = true;
-                    //HWND h = (HWND)_window.AppWindow.Id.GetWindowHandle();
-                    // PInvoke.SetWindowPos(h, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+                    Logger.LogDebug("ShowDesktop invoked. Bring us back");
                     WeakReferenceMessenger.Default.Send<BringToTopMessage>();
-                }
-                else
-                {
-                    //_window.Topmost = false;
                 }
             }
         }

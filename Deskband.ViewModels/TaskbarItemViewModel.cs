@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.CmdPal.Ext.WindowWalker.Commands;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 using Microsoft.UI.Dispatching;
@@ -93,6 +94,24 @@ namespace Deskband.ViewModels
         }
 
         public ObservableCollection<TaskbarItemViewModel> ContextMenu { get; set; } = new();
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is TaskbarItemViewModel other)
+            {
+                if (this.Command is SwitchToWindowCommand ours && other.Command is SwitchToWindowCommand theirs)
+                {
+                    return ours.Equals(theirs);
+                }
+            }
+
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public partial class CommandViewModel : ObservableObject, ICommand

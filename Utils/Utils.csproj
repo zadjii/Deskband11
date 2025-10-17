@@ -19,6 +19,8 @@
 
     <PackageReference Include="CommunityToolkit.Common" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    
+    <PackageReference Include="Microsoft.CommandPalette.Extensions" />
   </ItemGroup>
   
 </Project>

@@ -12,7 +12,7 @@ namespace Microsoft.CmdPal.Ext.WindowWalker.Commands;
 internal sealed partial class SwitchToWindowCommand : InvokableCommand
 {
     private readonly Window? _window;
-
+    //public override string Id => $"window.{_window.Hwnd}";
     public SwitchToWindowCommand(Window? window)
     {
         //Name = Resources.switch_to_command_title;
@@ -45,5 +45,15 @@ internal sealed partial class SwitchToWindowCommand : InvokableCommand
         _window.SwitchToWindow();
 
         return CommandResult.Dismiss();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SwitchToWindowCommand other ? other._window.Hwnd == this._window.Hwnd : base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
     }
 }
