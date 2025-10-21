@@ -25,6 +25,8 @@ namespace PowerDock
         private HWND _hwnd = HWND.Null;
         private APPBARDATA _appBarData;
         private uint _callbackMessageId;
+        private readonly uint WM_TASKBAR_RESTART;
+
         private MainViewModel ViewModel;
         private DockControl _dock;
         private DesktopAcrylicController _acrylicController;
@@ -32,7 +34,7 @@ namespace PowerDock
         // Store the original WndProc
         private WNDPROC? _originalWndProc;
         private WNDPROC? _customWndProc;
-
+        private bool _suppressNextTopmost = false;
 
         /// <summary>
         /// Gets the current settings instance
@@ -76,6 +78,13 @@ namespace PowerDock
             _customWndProc = CustomWndProc;
 
             _callbackMessageId = PInvoke.RegisterWindowMessage("AppBarMessage");
+
+            // TaskbarCreated is the message that's broadcast when explorer.exe
+            // restarts. We need to know when that happens to be able to bring our
+            // appbar back
+            // And this apparently happens on lock screens / hibernates, too
+            WM_TASKBAR_RESTART = PInvoke.RegisterWindowMessage("TaskbarCreated");
+
 
             nint hotKeyPrcPointer = Marshal.GetFunctionPointerForDelegate(_customWndProc);
             _originalWndProc = Marshal.GetDelegateForFunctionPointer<WNDPROC>(PInvoke.SetWindowLongPtr(_hwnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC, hotKeyPrcPointer));
@@ -280,8 +289,8 @@ namespace PowerDock
             // Query and set position
             PInvoke.SHAppBarMessage(ABM_QUERYPOS, ref _appBarData);
             PInvoke.SHAppBarMessage(ABM_SETPOS, ref _appBarData);
-            _appBarData.lParam = ABS_ALWAYSONTOP;
-            PInvoke.SHAppBarMessage(ABM_SETSTATE, ref _appBarData);
+            //_appBarData.lParam = ABS_ALWAYSONTOP;
+            //PInvoke.SHAppBarMessage(ABM_SETSTATE, ref _appBarData);
 
             // Account for system borders when moving the window
             // Adjust position to account for window frame/border
@@ -369,11 +378,23 @@ namespace PowerDock
                 {
                     this.Show();
                 }
+
+
+                if (wParam == (uint)SYSTEM_PARAMETERS_INFO_ACTION.SPI_SETWORKAREA)
+                {
+                    Logger.LogDebug($"WM_SETTINGCHANGE(SPI_SETWORKAREA)");
+                    // Use debounced call to throttle rapid successive calls
+                    DispatcherQueue.TryEnqueue(() => UpdateWindowPosition());
+                }
             }
-
-
+            else if (msg == WM_DISPLAYCHANGE)
+            {
+                Logger.LogDebug("WM_DISPLAYCHANGE");
+                // Use dispatcher to ensure we're on the UI thread
+                DispatcherQueue.TryEnqueue(() => UpdateWindowPosition());
+            }
             // Intercept WM_SYSCOMMAND to prevent minimize and maximize
-            if (msg == WM_SYSCOMMAND)
+            else if (msg == WM_SYSCOMMAND)
             {
                 int command = (int)(wParam.Value & 0xFFF0);
                 if (command == SC_MINIMIZE || command == SC_MAXIMIZE)
@@ -382,9 +403,8 @@ namespace PowerDock
                     return new LRESULT(0);
                 }
             }
-
             // Stop min/max on WM_WINDOWPOSCHANGING too
-            if (msg == WM_WINDOWPOSCHANGING)
+            else if (msg == WM_WINDOWPOSCHANGING)
             {
                 unsafe
                 {
@@ -409,7 +429,7 @@ namespace PowerDock
             }
 
             // Handle WM_SIZE to prevent minimize/maximize state changes
-            if (msg == WM_SIZE)
+            else if (msg == WM_SIZE)
             {
                 int sizeType = (int)wParam.Value;
                 if (sizeType == SIZE_MINIMIZED || sizeType == SIZE_MAXIMIZED)
@@ -420,7 +440,7 @@ namespace PowerDock
             }
 
             // Handle WM_SHOWWINDOW to prevent hiding (minimize)
-            if (msg == WM_SHOWWINDOW)
+            else if (msg == WM_SHOWWINDOW)
             {
                 bool isBeingShown = wParam.Value != 0;
                 if (!isBeingShown)
@@ -431,7 +451,7 @@ namespace PowerDock
             }
 
             // Handle double-click on title bar (non-client area)
-            if (msg == WM_NCLBUTTONDBLCLK)
+            else if (msg == WM_NCLBUTTONDBLCLK)
             {
                 int hitTest = (int)wParam.Value;
                 if (hitTest == HTCAPTION)
@@ -442,7 +462,7 @@ namespace PowerDock
             }
 
             // Handle WM_GETMINMAXINFO to control window size limits
-            if (msg == WM_GETMINMAXINFO)
+            else if (msg == WM_GETMINMAXINFO)
             {
                 // We can modify the min/max tracking info here if needed
                 // For now, let it pass through but we could restrict max size
@@ -451,7 +471,7 @@ namespace PowerDock
             // Handle the AppBarMessage message
             // This is needed to update the position when the work area changes. 
             // (notably, when the user toggles auto-hide taskbars)
-            if (msg == _callbackMessageId)
+            else if (msg == _callbackMessageId)
             {
                 if (wParam.Value == PInvoke.ABN_POSCHANGED)
                 {
@@ -459,7 +479,15 @@ namespace PowerDock
                 }
             }
 
+            else if (msg == WM_TASKBAR_RESTART)
+            {
+                Logger.LogDebug("WM_TASKBAR_RESTART");
+                _suppressNextTopmost = true;
 
+                DispatcherQueue.TryEnqueue(() => CreateAppBar(_hwnd));
+
+                WeakReferenceMessenger.Default.Send<BringToTopMessage>(new(false));
+            }
 
             // Call the original window procedure for all other messages
             return PInvoke.CallWindowProc(_originalWndProc, hwnd, msg, wParam, lParam);
@@ -479,9 +507,25 @@ namespace PowerDock
 
         void IRecipient<BringToTopMessage>.Receive(BringToTopMessage message)
         {
+            //var shell = PInvoke.GetShellWindow();
+            //if (shell != HWND.Null)
+            //{
+            //    _suppressNextTopmost = true;
+            //}
+            //if (_suppressNextTopmost)
+            //{
+            //    _suppressNextTopmost = false;
+            //    return;
+            //}
             DispatcherQueue.TryEnqueue(() =>
             {
-                PInvoke.SetWindowPos(_hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+
+                var onTop = message.OnTop ? HWND.HWND_TOPMOST : HWND_NOTOPMOST;
+                PInvoke.SetWindowPos(_hwnd, onTop, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+                PInvoke.SetWindowPos(_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+
+                //DispatcherQueue.TryEnqueue(() => { PInvoke.SetWindowPos(_hwnd, HWND.Null, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE); });
+
             });
         }
 
@@ -520,6 +564,8 @@ namespace PowerDock
 
         public static readonly nint ABS_AUTOHIDE = 0x1;
         public static readonly nint ABS_ALWAYSONTOP = 0x2;
+        
+        internal static readonly HWND HWND_NOTOPMOST = (HWND)(nint)(-2);
 
         // Window message constants
         private const int WM_SYSCOMMAND = 0x0112;
@@ -736,7 +782,11 @@ namespace PowerDock
                 if (string.Equals(_class, WORKERW, StringComparison.Ordinal) || string.Equals(_class, PROGMAN, StringComparison.Ordinal))
                 {
                     Logger.LogDebug("ShowDesktop invoked. Bring us back");
-                    WeakReferenceMessenger.Default.Send<BringToTopMessage>();
+                    WeakReferenceMessenger.Default.Send<BringToTopMessage>(new(true));
+                }
+                else
+                {
+                    //WeakReferenceMessenger.Default.Send<BringToTopMessage>(new(false));
                 }
             }
         }
@@ -750,5 +800,5 @@ namespace PowerDock
         private static Window? _window { get; set; }
     }
 
-    record BringToTopMessage();
+    record BringToTopMessage(bool OnTop);
 }

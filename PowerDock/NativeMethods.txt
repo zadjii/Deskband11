@@ -103,3 +103,5 @@ GetDpiForWindow
 ABN_POSCHANGED
 SHQueryUserNotificationState
 WM_SETTINGCHANGE
+
+GetShellWindow
