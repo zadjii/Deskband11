@@ -289,6 +289,7 @@ namespace PowerDock
             // Query and set position
             PInvoke.SHAppBarMessage(ABM_QUERYPOS, ref _appBarData);
             PInvoke.SHAppBarMessage(ABM_SETPOS, ref _appBarData);
+            // TODO: investigate ABS_AUTOHIDE
             //_appBarData.lParam = ABS_ALWAYSONTOP;
             //PInvoke.SHAppBarMessage(ABM_SETSTATE, ref _appBarData);
 
