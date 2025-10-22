@@ -484,9 +484,14 @@ namespace PowerDock
                 Logger.LogDebug("WM_TASKBAR_RESTART");
                 _suppressNextTopmost = true;
 
-                DispatcherQueue.TryEnqueue(() => CreateAppBar(_hwnd));
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    CreateAppBar(_hwnd);
+                    this.AppWindow.IsShownInSwitchers = false;
+                });
 
                 WeakReferenceMessenger.Default.Send<BringToTopMessage>(new(false));
+
             }
 
             // Call the original window procedure for all other messages
